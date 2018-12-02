@@ -3,9 +3,10 @@ package shared
 import java.util.*
 
 fun <E> LinkedList<E>.circularListIterator(startingPosition: Int = 0) =
-        CircularListIterator(this, startingPosition)
+    CircularListIterator(this, startingPosition)
 
-class CircularListIterator<T>(private val backingList: LinkedList<T>, startingPosition: Int = 0) : MutableListIterator<T> {
+class CircularListIterator<T>(private val backingList: LinkedList<T>, startingPosition: Int = 0) :
+    MutableListIterator<T> {
     private var iterator = backingList.listIterator(startingPosition)
 
     override fun add(element: T) {
@@ -40,4 +41,12 @@ class CircularListIterator<T>(private val backingList: LinkedList<T>, startingPo
 
     override fun previousIndex() = if (!iterator.hasPrevious()) backingList.size - 1 else iterator.previousIndex()
 
+}
+
+fun <T> List<T>.allPairs(): Sequence<Pair<T, T>> = sequence {
+    forEachIndexed { e1Index, e1 ->
+        (e1Index + 1 until size).map { get(it) }.forEach { e2 ->
+            yield(e1 to e2)
+        }
+    }
 }

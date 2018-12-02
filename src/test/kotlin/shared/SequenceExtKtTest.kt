@@ -11,5 +11,5 @@ internal class SequenceExtKtTest {
 
         assertEquals(listOf(1, 3, 6, 10, 15), subject.reduceIntermediate { acc, v -> acc + v }.toList())
     }
-    
+
 }
