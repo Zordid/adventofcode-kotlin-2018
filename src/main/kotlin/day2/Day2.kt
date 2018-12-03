@@ -6,10 +6,10 @@ import shared.readPuzzle
 fun String.containsOneCharExactly(times: Int) =
     toCharArray().distinct().any { c -> count { it == c } == times }
 
-infix fun String.differenceCountTo(other: String) =
+infix fun String.difference(other: String) =
     indices.count { this[it] != other.getOrNull(it) } + Math.max(other.length - length, 0)
 
-infix fun String.differenceTo(other: String) =
+infix fun String.common(other: String) =
     toCharArray().filterIndexed { index, c -> c == other[index] }.joinToString("")
 
 fun part1(ids: List<String>): Int {
@@ -17,8 +17,8 @@ fun part1(ids: List<String>): Int {
 }
 
 fun part2(ids: List<String>): String {
-    return ids.allPairs().single { it.first differenceCountTo it.second == 1 }.let {
-        it.first differenceTo it.second
+    return ids.allPairs().single { it.first difference it.second == 1 }.let {
+        it.first common it.second
     }
 }
 

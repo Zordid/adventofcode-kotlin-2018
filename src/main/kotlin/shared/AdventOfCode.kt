@@ -8,5 +8,6 @@ fun readPuzzle(day: Int, extra: String = "") =
 fun <T> readPuzzle(day: Int, extra: String = "", mapper: (String) -> T) =
     readPuzzle(day, extra).map(mapper)
 
-fun readPuzzleAsInts(day: Int) = readPuzzle(day) { it.toInt() }
+fun readPuzzleAsInts(day: Int, extra: String = "") =
+    readPuzzle(day, extra) { it.toInt() }
 

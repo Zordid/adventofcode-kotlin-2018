@@ -6,41 +6,33 @@ data class Claim(val id: String, val left: Int, val top: Int, val width: Int, va
     private val right = left + width - 1
     private val bottom = top + height - 1
 
-    fun cut(fabric: List<CharArray>) {
+    fun cut(fabric: List<ByteArray>) {
         for (line in top until (top + height)) {
             for (col in left until (left + width)) {
-                fabric[line][col] = if (fabric[line][col] == '.') id[0] else 'X'
+                fabric[line][col]++
             }
         }
     }
 
     infix fun overlaps(other: Claim): Boolean {
-        return !(left > other.right || other.left > right) and
-                !(top > other.bottom || other.top > bottom)
-    }
-
-    fun covers(line: Int, col: Int): Boolean {
-        return (line in top..bottom) and (col in left..right)
+        return !(left > other.right || right < other.left) &&
+                !(top > other.bottom || bottom < other.top)
     }
 
 }
 
+private val claimDefinition = Regex("#(\\d+) @ (\\d+),(\\d+): (\\d+)x(\\d+)")
+
 fun String.toClaim(): Claim {
-    val regex = Regex("#(\\d+) @ (\\d+),(\\d+): (\\d+)x(\\d+)")
     val (id, left, top, width, height) =
-            regex.matchEntire(this)?.destructured ?: throw UnsupportedOperationException(this)
+            claimDefinition.matchEntire(this)?.destructured ?: throw UnsupportedOperationException(this)
     return Claim(id, left.toInt(), top.toInt(), width.toInt(), height.toInt())
 }
 
 fun part1(claims: List<Claim>): Int {
-//    return (0..999).map { line ->
-//        (0..999).count { col ->
-//            claims.count { it.covers(line, col) } > 1
-//        }
-//    }.sum()
-    val fabric = (0..999).map { CharArray(1000) { '.' } }
+    val fabric = (0..999).map { ByteArray(1000) { 0 } }
     claims.forEach { it.cut(fabric) }
-    return fabric.map { it.count { it == 'X' } }.sum()
+    return fabric.map { it.count { it > 1 } }.sum()
 }
 
 fun part2(claims: List<Claim>): Claim {

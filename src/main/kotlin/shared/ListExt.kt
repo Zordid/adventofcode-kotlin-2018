@@ -45,8 +45,8 @@ class CircularListIterator<T>(private val backingList: LinkedList<T>, startingPo
 
 fun <T> List<T>.allPairs(): Sequence<Pair<T, T>> = sequence {
     forEachIndexed { e1Index, e1 ->
-        (e1Index + 1 until size).map { get(it) }.forEach { e2 ->
-            yield(e1 to e2)
+        (e1Index + 1 until size).forEach { e2Index ->
+            yield(e1 to get(e2Index))
         }
     }
 }
