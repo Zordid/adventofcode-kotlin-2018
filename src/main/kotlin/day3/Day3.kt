@@ -40,8 +40,8 @@ fun part2(claims: List<Claim>): Claim {
 }
 
 fun main(args: Array<String>) {
-    val puzzle = readPuzzle(3)
+    val claims = readPuzzle(3) { it.toClaim() }
 
-    println(part1(puzzle.map { it.toClaim() }))
-    println(part2(puzzle.map { it.toClaim() }))
+    println(part1(claims))
+    println(part2(claims))
 }
