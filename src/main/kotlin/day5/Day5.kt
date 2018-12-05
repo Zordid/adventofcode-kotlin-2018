@@ -3,38 +3,33 @@ package day5
 import shared.readPuzzle
 import java.util.*
 
-fun String.removeUnits(type: Char): String {
-    return toCharArray().filter { it.toLowerCase() != type }.joinToString("")
-}
+infix fun Char.matches(other: Char) =
+    (isLowerCase() && other.isUpperCase() || isUpperCase() && other.isLowerCase()) &&
+            toLowerCase() == other.toLowerCase()
 
-fun String.polymerReaction(): Int {
-    val list = LinkedList(toCharArray().toList())
-    var remaining = length
+fun String.removeAllUnitsOf(type: Char): List<Char> = toCharArray().filter { it.toLowerCase() != type }
 
-//    println(list.joinToString(""))
-    do {
-        val it = list.listIterator()
-        var prevChar = it.next()
-        var reaction = false
-        while (it.hasNext()) {
-            val char = it.next()
-            if (((prevChar.isUpperCase() && !char.isUpperCase()) || (!prevChar.isUpperCase() && char.isUpperCase())) &&
-                prevChar.toLowerCase() == char.toLowerCase()
-            ) {
-//                println("Found $prevChar $char")
-                it.remove()
-                it.previous()
-                it.remove()
-                remaining -= 2
-                reaction = true
-//                println(list.joinToString(""))
-                break
-            }
-            prevChar = char
+fun String.polymerReaction(): Int = toCharArray().toList().polymerReaction()
+
+fun List<Char>.polymerReaction(): Int {
+    val list = LinkedList(this)
+    var remaining = size
+
+    val iterator = list.listIterator()
+    var previousUnit = if (iterator.hasNext()) iterator.next() else return 0
+    while (iterator.hasNext()) {
+        val currentUnit = iterator.next()
+        if (previousUnit matches currentUnit) {
+            iterator.remove()
+            iterator.previous()
+            iterator.remove()
+            remaining -= 2
+            if (remaining > 0)
+                previousUnit = if (iterator.hasPrevious()) iterator.previous() else iterator.next()
+        } else {
+            previousUnit = currentUnit
         }
-    } while (reaction && remaining > 1)
-    println("Done")
-//    println(list.joinToString(""))
+    }
     return remaining
 }
 
@@ -44,12 +39,7 @@ fun part1(polymer: String): Any {
 
 fun part2(polymer: String): Any {
     return polymer.toCharArray().filter { it.isLowerCase() }.toSet()
-        .map {
-            println("Removing $it")
-            val p = polymer.removeUnits(it)
-            val l = p.polymerReaction()
-            println("${polymer.length} -> ${p.length} -> $l")
-            it to l }
+        .map { it to polymer.removeAllUnitsOf(it).polymerReaction() }
         .minBy { it.second }!!
 }
 
@@ -58,6 +48,4 @@ fun main(args: Array<String>) {
 
     println(part1(puzzle.single()))
     println(part2(puzzle.single()))
-
-    println("dabAcCaCBAcCcaDA".removeUnits('a'))
 }
