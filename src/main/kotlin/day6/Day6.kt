@@ -32,25 +32,29 @@ fun part1(coordinates: List<Pair<Int, Int>>): Any {
     return (coordinates.indices - infinite).map { it to ownedArea[it] }.maxBy { it.second }!!
 }
 
-fun part2(coordinates: List<Pair<Int, Int>>, threshold: Int = 10000, safetyMargin: Int = 0): Any {
+tailrec fun part2(coordinates: List<Pair<Int, Int>>, threshold: Int = 10000, safetyMargin: Int = 0): Any {
     val (boundLeft, boundRight) = coordinates.map { it.first }.minMax()!!
     val (boundTop, boundBottom) = coordinates.map { it.second }.minMax()!!
 
-    var warningIssued = false
+    var safeAreaTouchedEdge = false
     val checkRows = boundTop - safetyMargin..boundBottom + safetyMargin
     val checkColumns = boundLeft - safetyMargin..boundRight + safetyMargin
-    return checkRows.sumBy { row ->
+    val size = checkRows.sumBy { row ->
         val topOrBottomEdge = row == checkRows.first || row == checkRows.last
-        checkColumns.count { col ->
-            val leftOrRightEdge = col == checkColumns.first || col == checkColumns.last
-            val counts = coordinates.sumBy { (col to row) distanceTo it } < threshold
-            if (!warningIssued && counts && (topOrBottomEdge || leftOrRightEdge)) {
-                println("Warning: safe area reaches outer bounds, result may be invalid!")
-                warningIssued = true
-            }
-            counts
-        }
+        if (!safeAreaTouchedEdge)
+            checkColumns.count { col ->
+                val leftOrRightEdge = col == checkColumns.first || col == checkColumns.last
+                val belongsToSafeArea = !safeAreaTouchedEdge &&
+                        coordinates.sumBy { (col to row) distanceTo it } < threshold
+                if (belongsToSafeArea && (topOrBottomEdge || leftOrRightEdge)) {
+                    println("Warning: safe area reached outer bounds, increasing margin to ${safetyMargin + 1}!")
+                    safeAreaTouchedEdge = true
+                }
+                belongsToSafeArea
+            } else
+            0
     }
+    return if (safeAreaTouchedEdge) part2(coordinates, threshold, safetyMargin + 1) else size
 }
 
 fun main(args: Array<String>) {
