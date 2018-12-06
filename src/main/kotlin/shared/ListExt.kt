@@ -50,3 +50,5 @@ fun <T> List<T>.allPairs(): Sequence<Pair<T, T>> = sequence {
         }
     }
 }
+
+fun <T: Comparable<T>> List<T>.minMax(): Pair<T, T>? = min()?.let{ it to max()!! }

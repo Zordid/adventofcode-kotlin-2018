@@ -1,62 +1,60 @@
 package day6
 
 import shared.extractAllInts
+import shared.minByIfUnique
+import shared.minMax
 import shared.readPuzzle
 
-fun Pair<Int, Int>.distanceTo(other: Pair<Int, Int>): Int {
-    return Math.abs(first - other.first) + Math.abs(second - other.second)
-}
+infix fun Pair<Int, Int>.distanceTo(other: Pair<Int, Int>) =
+    Math.abs(first - other.first) + Math.abs(second - other.second)
 
+fun part1(coordinates: List<Pair<Int, Int>>): Any {
+    val (boundLeft, boundRight) = coordinates.map { it.first }.minMax()!!
+    val (boundTop, boundBottom) = coordinates.map { it.second }.minMax()!!
 
-fun part1(coordinates: List<String>): Any {
-    val c = coordinates.map { it.extractAllInts().toList() }.map { it[0] to it[1] }
-
-    val boundLeft = c.minBy { it.first }!!.first
-    val boundRight = c.maxBy { it.first }!!.first
-    val boundTop = c.minBy { it.second }!!.second
-    val boundBottom = c.maxBy { it.second }!!.second
-
-    val height = boundBottom - boundTop + 1
-    val width = boundRight - boundLeft + 1
-    val area = Array(height) { IntArray(width) { -1 } }
+    val infinite = mutableSetOf<Int>()
+    val ownedArea = IntArray(coordinates.size)
 
     for (row in boundTop..boundBottom) {
+        val topOrBottomEdge = row == boundTop || row == boundBottom
         for (col in boundLeft..boundRight) {
-            val p = col to row
-            val distances = c.mapIndexed { index, pair -> index to pair.distanceTo(p) }
-            val minDistance = distances.minBy { it.second }!!
-            val sameDistance = distances.any { it.first != minDistance.first && it.second == minDistance.second }
-            if (!sameDistance)
-                area[row - boundTop][col - boundLeft] = minDistance.first
+            val leftOrRightEdge = col == boundLeft || col == boundRight
+            coordinates
+                .mapIndexed { idx, c -> idx to ((col to row) distanceTo c) }
+                .minByIfUnique { it.second }?.also {
+                    if (topOrBottomEdge || leftOrRightEdge)
+                        infinite.add(it.first)
+                    ownedArea[it.first]++
+                }
         }
     }
 
-    val borderAreas =
-        (0 until height).flatMap { setOf(area[it][0], area[it][width - 1]) }.toSet() +
-                (0 until width).flatMap { setOf(area[0][it], area[height - 1][it]) }
-
-    return (c.indices - borderAreas).map { idx ->
-        idx to area.sumBy { row -> row.count { it == idx } }
-    }.maxBy { it.second }!!
+    return (coordinates.indices - infinite).map { it to ownedArea[it] }.maxBy { it.second }!!
 }
 
-fun part2(coordinates: List<String>, threshold: Int = 10000): Any {
-    val c = coordinates.map { it.extractAllInts().toList() }.map { it[0] to it[1] }
+fun part2(coordinates: List<Pair<Int, Int>>, threshold: Int = 10000, safetyMargin: Int = 0): Any {
+    val (boundLeft, boundRight) = coordinates.map { it.first }.minMax()!!
+    val (boundTop, boundBottom) = coordinates.map { it.second }.minMax()!!
 
-    val boundLeft = c.minBy { it.first }!!.first
-    val boundRight = c.maxBy { it.first }!!.first
-    val boundTop = c.minBy { it.second }!!.second
-    val boundBottom = c.maxBy { it.second }!!.second
-
-    return (boundTop..boundBottom).sumBy { row ->
-        (boundLeft..boundRight).count { col ->
-            c.sumBy { (col to row).distanceTo(it) } < threshold
+    var warningIssued = false
+    val checkRows = boundTop - safetyMargin..boundBottom + safetyMargin
+    val checkColumns = boundLeft - safetyMargin..boundRight + safetyMargin
+    return checkRows.sumBy { row ->
+        val topOrBottomEdge = row == checkRows.first || row == checkRows.last
+        checkColumns.count { col ->
+            val leftOrRightEdge = col == checkColumns.first || col == checkColumns.last
+            val counts = coordinates.sumBy { (col to row) distanceTo it } < threshold
+            if (!warningIssued && counts && (topOrBottomEdge || leftOrRightEdge)) {
+                println("Warning: safe area reaches outer bounds, result may be invalid!")
+                warningIssued = true
+            }
+            counts
         }
     }
 }
 
 fun main(args: Array<String>) {
-    val puzzle = readPuzzle(6)
+    val puzzle = readPuzzle(6) { it.extractAllInts().toList().let { c -> c[0] to c[1] } }
 
     println(part1(puzzle))
     println(part2(puzzle))
