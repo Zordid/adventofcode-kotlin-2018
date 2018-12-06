@@ -26,25 +26,17 @@ fun part1(coordinates: List<String>): Any {
             val distances = c.mapIndexed { index, pair -> index to pair.distanceTo(p) }
             val minDistance = distances.minBy { it.second }!!
             val sameDistance = distances.any { it.first != minDistance.first && it.second == minDistance.second }
-            if (!sameDistance) {
+            if (!sameDistance)
                 area[row - boundTop][col - boundLeft] = minDistance.first
-//                if (minDistance.second > 0)
-//                    print('a' + minDistance.first)
-//                else
-//                    print('A' + minDistance.first)
-            } else {
-//                print('.')
-            }
         }
-//        println()
     }
 
-    val borderAreas = ((0 until height).flatMap { setOf(area[it][0], area[it][width - 1]) }.toSet())
-    val borderAreas2 = ((0 until width).flatMap { setOf(area[0][it], area[height - 1][it]) }.toSet())
+    val borderAreas =
+        (0 until height).flatMap { setOf(area[it][0], area[it][width - 1]) }.toSet() +
+                (0 until width).flatMap { setOf(area[0][it], area[height - 1][it]) }
 
-    val dontCount = borderAreas + borderAreas2
 
-    return (c.indices - dontCount).map { idx -> idx to area.sumBy { it.count { it == idx } } }.maxBy { it.second }!!
+    return (c.indices - borderAreas).map { idx -> idx to area.sumBy { it.count { it == idx } } }.maxBy { it.second }!!
 }
 
 fun part2(coordinates: List<String>, threshold: Int = 10000): Any {
@@ -55,23 +47,15 @@ fun part2(coordinates: List<String>, threshold: Int = 10000): Any {
     val boundTop = c.minBy { it.second }!!.second
     val boundBottom = c.maxBy { it.second }!!.second
 
-    val height = boundBottom - boundTop + 1
-    val width = boundRight - boundLeft + 1
-
     var count = 0
-    for (row in 0..500) {
-        for (col in 0..500) {
+    for (row in boundTop..boundBottom) {
+        for (col in boundLeft..boundRight) {
             val p = col to row
             val totalDistance = c.sumBy { it.distanceTo(p) }
 
-            if (totalDistance < threshold) {
-                print('#')
+            if (totalDistance < threshold)
                 count++
-            } else {
-                print('.')
-            }
         }
-        println()
     }
 
     return count
