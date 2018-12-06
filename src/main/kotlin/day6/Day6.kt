@@ -35,8 +35,9 @@ fun part1(coordinates: List<String>): Any {
         (0 until height).flatMap { setOf(area[it][0], area[it][width - 1]) }.toSet() +
                 (0 until width).flatMap { setOf(area[0][it], area[height - 1][it]) }
 
-
-    return (c.indices - borderAreas).map { idx -> idx to area.sumBy { it.count { it == idx } } }.maxBy { it.second }!!
+    return (c.indices - borderAreas).map { idx ->
+        idx to area.sumBy { row -> row.count { it == idx } }
+    }.maxBy { it.second }!!
 }
 
 fun part2(coordinates: List<String>, threshold: Int = 10000): Any {
@@ -47,18 +48,11 @@ fun part2(coordinates: List<String>, threshold: Int = 10000): Any {
     val boundTop = c.minBy { it.second }!!.second
     val boundBottom = c.maxBy { it.second }!!.second
 
-    var count = 0
-    for (row in boundTop..boundBottom) {
-        for (col in boundLeft..boundRight) {
-            val p = col to row
-            val totalDistance = c.sumBy { it.distanceTo(p) }
-
-            if (totalDistance < threshold)
-                count++
+    return (boundTop..boundBottom).sumBy { row ->
+        (boundLeft..boundRight).count { col ->
+            c.sumBy { (col to row).distanceTo(it) } < threshold
         }
     }
-
-    return count
 }
 
 fun main(args: Array<String>) {
