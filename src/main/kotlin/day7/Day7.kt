@@ -3,78 +3,98 @@ package day7
 import shared.readPuzzle
 import java.lang.StringBuilder
 
-fun part1(puzzle: List<String>): Any {
-    val required = mutableMapOf<Char, MutableSet<Char>>()
-    puzzle.forEach { def ->
-        def.split(" ").also {
-            val step = it[7][0]
-            val requires = it[1][0]
-            required.getOrPut(requires) { mutableSetOf() }
-            required.getOrPut(step) { mutableSetOf() }.add(requires)
-        }
-    }
+fun part1(input: List<String>): Any {
+    val required = prepareData(input)
 
-    val order = StringBuilder()
-    while (required.isNotEmpty()) {
-        val ready = required.filter { it.value.isEmpty() }.keys.min()!!
-        order.append(ready)
-        required.remove(ready)
-        required.forEach { it.value.remove(ready) }
-    }
+    val order = mutableListOf<Char>()
+    while (required.filter { !order.contains(it.key) && order.containsAll(it.value) }.keys.min()?.also {
+            order.add(it)
+        } != null);
 
-    return order.toString()
+    return order.joinToString("")
 }
 
 fun Map<Char, MutableSet<Char>>.nextToWorkOn(): List<Char> {
     return this.filter { it.value.isEmpty() }.keys.sorted()
 }
 
-fun part2(puzzle: List<String>, maxWorkers: Int = 5, baseWork: Int = 60): Any {
+fun part2(input: List<String>, maxWorkers: Int = 5, baseWork: Int = 60): Any {
+    val instructions = input.map { line -> line.split(' ').let { it[7][0] to it[1][0] } }
     val required = mutableMapOf<Char, MutableSet<Char>>()
-    puzzle.forEach { def ->
-        def.split(" ").also {
-            val step = it[7][0]
-            val requires = it[1][0]
-            required.getOrPut(requires) { mutableSetOf() }
-            required.getOrPut(step) { mutableSetOf() }.add(requires)
-        }
+    instructions.forEach { def ->
+        val (step, requires) = def
+        required.getOrPut(requires) { mutableSetOf() }
+        required.getOrPut(step) { mutableSetOf() }.add(requires)
     }
 
     val order = StringBuilder()
     val workers = mutableMapOf<Char, Int>()
 
     var time = 0
-    while (required.isNotEmpty()) {
-        if (workers.size == maxWorkers || (required.nextToWorkOn() - workers.keys).isEmpty()) {
+    while (true) {
+        while (workers.size == maxWorkers || (required.nextToWorkOn() - workers.keys).isEmpty()) {
             val nextFinished = workers.minBy { it.value }!!
-            time = nextFinished.value
             workers.remove(nextFinished.key)
-            order.append(nextFinished.key)
-            println(order)
             required.forEach { it.value.remove(nextFinished.key) }
             required.remove(nextFinished.key)
+            time = nextFinished.value
+
+            order.append(nextFinished.key)
+            println(order)
+            if (required.isEmpty())
+                return time
         }
 
-        val workOn = (required.nextToWorkOn() - workers.keys).firstOrNull()
-        if (workOn != null)
-            workers[workOn] = time + baseWork + (workOn - 'A' + 1)
-        else if (workers.isNotEmpty()) {
-            val nextFinished = workers.minBy { it.value }!!
-            time = nextFinished.value
-            workers.remove(nextFinished.key)
-            order.append(nextFinished.key)
-            println(order)
-            required.forEach { it.value.remove(nextFinished.key) }
-            required.remove(nextFinished.key)
+        val workOn = (required.nextToWorkOn() - workers.keys).first()
+        workers[workOn] = time + baseWork + (workOn - 'A' + 1)
+    }
+}
+
+fun prepareData(input: List<String>): Map<Char, Set<Char>> {
+    val instructions = input.map { line -> line.split(' ').let { it[7][0] to it[1][0] } }
+    val required = mutableMapOf<Char, MutableSet<Char>>()
+    instructions.forEach { def ->
+        val (step, requires) = def
+        required.getOrPut(requires) { mutableSetOf() }
+        required.getOrPut(step) { mutableSetOf() }.add(requires)
+    }
+    return required
+}
+
+fun Char.effort(): Int = this - 'A' + 1
+
+fun part2(requirements: Map<Char, Set<Char>>, maxWorkers: Int = 5, baseWork: Int = 60): Any {
+    val order = mutableListOf<Char>()
+    val workers = mutableMapOf<Char, Int>()
+    while (true) {
+        val time = workers.values.min() ?: 0
+
+        val finishedSteps = workers.filterValues { it == time }.keys
+        order.addAll(finishedSteps.sorted())
+        workers -= finishedSteps
+
+        val availableSteps = requirements.filter {
+            val (step, requiredSteps) = it
+            !order.contains(step) &&
+                    !workers.keys.contains(step) &&
+                    order.containsAll(requiredSteps)
+        }.keys
+
+        if (availableSteps.isEmpty() && workers.isEmpty())
+            return time
+
+        val freeWorkers = maxWorkers - workers.size
+        availableSteps.sorted().asSequence().take(freeWorkers).forEach { step ->
+            workers[step] = time + baseWork + step.effort()
         }
     }
-
-    return time
 }
 
 fun main(args: Array<String>) {
-    val puzzle = readPuzzle(7)
+    val stepRequires = readPuzzle(7)
 
-    println(part1(puzzle))
-    println(part2(puzzle))
+    val requirements = prepareData(stepRequires)
+    println(part1(stepRequires))
+    println(part2(stepRequires))
+    println(part2(requirements))
 }
