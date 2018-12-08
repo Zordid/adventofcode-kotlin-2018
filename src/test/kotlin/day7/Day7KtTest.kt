@@ -21,6 +21,10 @@ Step F must be finished before step E can begin.""".split("\n")
     @Test
     fun part2() {
         assertEquals(15, part2(input, 2, 0))
+    }
+
+    @Test
+    fun part2new() {
         assertEquals(15, part2(prepareData(input), 2, 0))
     }
 }
