@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 
 internal class Day7KtTest {
 
-    val input = """Step C must be finished before step A can begin.
+    private val input = """Step C must be finished before step A can begin.
 Step C must be finished before step F can begin.
 Step A must be finished before step B can begin.
 Step A must be finished before step D can begin.
