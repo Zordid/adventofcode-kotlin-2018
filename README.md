@@ -8,12 +8,13 @@ If you are into *programming*, into *logic*, maybe also a little bit into *compe
 as well!
 
 My solutions
-
-...are mostly written in Kotlin, so I will use this repo to show how it could be done.
+* ...are my own solutions in the very first commit after I solved the puzzle. Those are "dirty" commits.
+* ...are then refined in a "clean up" effort - this is where I add tests as well, which I find very important.
+* ...and then are improved by adding ideas I get from reading other people's solutions or discussions on Reddit - this is my third iteration over my code: I add nice ideas, tricks, whatever I find very useful.
 
 My daily routine in December
 
-...I set my alarm clock to 5:55 in the morning. Get up, prepare a coffee while then starting to read the challenge 
+I set my alarm clock to 5:55 in the morning. Get up, prepare a coffee while then starting to read the challenge 
 text on my tablet. My first coding is usually quite dirty, but solve the puzzles. Then in the second iteration I
 clean things up - because I am a clean code guy.
 
@@ -22,7 +23,8 @@ by the way. :)
 
 My repo
 
-...is just *my* solution. There generally is no *best* solution, let alone a *single* solution.
-I tweak my code quite a bit before I am pleased and happy. 
+...contains just *my* solution. Lots of personal preferences and the way I tick is contained here. There generally is no *best* solution, let alone a *single* solution.
+
+I tweak my code quite a bit before I am pleased and happy. So should you! Happy coding!
 
  
