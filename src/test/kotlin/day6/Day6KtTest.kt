@@ -6,7 +6,7 @@ import shared.extractAllInts
 
 internal class Day6KtTest {
 
-    val input = """1, 1
+    private val input = """1, 1
 1, 6
 8, 3
 3, 4

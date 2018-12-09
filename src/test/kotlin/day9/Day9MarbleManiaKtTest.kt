@@ -3,7 +3,7 @@ package day9
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
-internal class Day9KtTest {
+internal class Day9MarbleManiaKtTest {
 
     @Test
     fun part1() {
