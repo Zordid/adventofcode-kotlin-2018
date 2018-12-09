@@ -9,10 +9,9 @@ fun part1(players: Int, marbles: Int): Long {
     val circle = LinkedList<Int>(listOf(0)).circularListIterator()
 
     val scores = LongArray(players)
-    var nextMarble = 1
     var currentElf = 0
 
-    while (nextMarble <= marbles) {
+    for (nextMarble in 1..marbles) {
         if (nextMarble % 23L != 0L) {
             circle.next()
             circle.add(nextMarble)
@@ -25,7 +24,6 @@ fun part1(players: Int, marbles: Int): Long {
             val wins = nextMarble + takenMarble
             scores[currentElf] += wins.toLong()
         }
-        nextMarble++
         currentElf = (currentElf + 1) % players
     }
 
