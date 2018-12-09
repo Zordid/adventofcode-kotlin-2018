@@ -1,52 +1,44 @@
 package day9
 
 import shared.circularListIterator
+import shared.extractAllPositiveInts
 import shared.readPuzzle
 import java.util.*
 
-fun part1(players: Int, marbles: Long): Any {
-    val l = LinkedList<Long>()
-    l.add(0)
+fun part1(players: Int, marbles: Int): Long {
+    val circle = LinkedList<Int>(listOf(0)).circularListIterator()
 
-    val circle = l.circularListIterator()
+    val scores = LongArray(players)
+    var nextMarble = 1
+    var currentElf = 0
 
-    val elves = LongArray(players)
-
-    var nextMarble = 1L
     while (nextMarble <= marbles) {
-        elves.indices.forEach { elf ->
-            if (nextMarble <= marbles) {
-                if (nextMarble % 23L != 0L) {
-                    //println("Adding marble $nextMarble")
-                    circle.next()
-                    circle.add(nextMarble)
-                } else {
-//                    print("Elf #$elf is lucky, gets $nextMarble and ")
-                    repeat(7) { circle.previous() }
-                    val takenMarble = circle.previous()
-                    circle.remove()
-                    circle.next()
-//                    println("$takenMarble: new score is ${elves[elf]}")
-                    val wins = nextMarble + takenMarble
-                    elves[elf]+=  wins
-                    //println("${elf to wins}, max player is ${elves.maxBy { it.value }!!.key}")
-                }
-            }
-            nextMarble++
-//            println(l)
+        if (nextMarble % 23L != 0L) {
+            circle.next()
+            circle.add(nextMarble)
+        } else {
+            repeat(7) { circle.previous() }
+            val takenMarble = circle.previous()
+            circle.remove()
+            circle.next()
+
+            val wins = nextMarble + takenMarble
+            scores[currentElf] += wins.toLong()
         }
+        nextMarble++
+        currentElf = (currentElf + 1) % players
     }
 
-    return elves.max()!!
+    return scores.max()!!
 }
 
-fun part2(players: Int, marbles: Long): Any {
-    return part1(players, 100L*marbles)
+fun part2(players: Int, marbles: Int): Long {
+    return part1(players, 100 * marbles)
 }
 
 fun main(args: Array<String>) {
-    val puzzle = readPuzzle(9)
+    val (players, marbles) = readPuzzle(9).single().extractAllPositiveInts().toList()
 
-    println(part1(435, 71184))
-    println(part2(435, 71184))
+    println(part1(players, marbles))
+    println(part2(players, marbles))
 }
