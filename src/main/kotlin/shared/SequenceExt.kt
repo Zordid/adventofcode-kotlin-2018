@@ -17,18 +17,19 @@ inline fun <T, R : Comparable<R>> Sequence<T>.minByIfUnique(selector: (T) -> R):
     if (!iterator.hasNext()) return null
     var minElem = iterator.next()
     var minValue = selector(minElem)
+    var seen = 1
     while (iterator.hasNext()) {
         val e = iterator.next()
         val v = selector(e)
-        if (minValue == v) {
-            return null
-        }
+        if (minValue == v)
+            seen++
         if (minValue > v) {
             minElem = e
             minValue = v
+            seen = 1
         }
     }
-    return minElem
+    return if (seen == 1) minElem else null
 }
 
 inline fun <T, R : Comparable<R>> Iterable<T>.minByIfUnique(selector: (T) -> R): T? {
@@ -36,17 +37,19 @@ inline fun <T, R : Comparable<R>> Iterable<T>.minByIfUnique(selector: (T) -> R):
     if (!iterator.hasNext()) return null
     var minElem = iterator.next()
     var minValue = selector(minElem)
+    var seen = 1
     while (iterator.hasNext()) {
         val e = iterator.next()
         val v = selector(e)
         if (minValue == v)
-            return null
+            seen++
         if (minValue > v) {
             minElem = e
             minValue = v
+            seen = 1
         }
     }
-    return minElem
+    return if (seen == 1) minElem else null
 }
 
 
