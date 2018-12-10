@@ -12,7 +12,7 @@ fun part1(players: Int, marbles: Int): Long {
     var currentElf = 0
 
     for (nextMarble in 1..marbles) {
-        if (nextMarble % 23L != 0L) {
+        if (nextMarble % 23 != 0) {
             circle.next()
             circle.add(nextMarble)
         } else {

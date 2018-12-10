@@ -63,6 +63,9 @@ fun prepareData(input: List<String>): Map<Char, Set<Char>> {
 
 fun Char.effort(): Int = this - 'A' + 1
 
+/**
+ * This is a reimplementation of the algorithm free of the double inner loop
+ */
 fun part2(requirements: Map<Char, Set<Char>>, maxWorkers: Int = 5, baseWork: Int = 60): Any {
     val order = mutableListOf<Char>()
     val workers = mutableMapOf<Char, Int>()
