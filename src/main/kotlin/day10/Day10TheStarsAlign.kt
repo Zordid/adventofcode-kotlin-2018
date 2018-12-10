@@ -4,27 +4,23 @@ import shared.extractAllInts
 import shared.minToMaxRange
 import shared.readPuzzle
 
-fun part1and2(puzzle: List<List<Int>>): Int {
-    val (initialPositions, velocities) =
-            puzzle.map { (it[0] to it[1]) to (it[2] to it[3]) }.unzip()
-
-    var positions = initialPositions
-    var time = 0
-    do {
-        positions = positions.mapIndexed { index, p -> p + velocities[index] }
-        time++
-        val height = positions.map { it.second }.minToMaxRange()!!.size()
-    } while (height != 9)
-
-    positions.printLights()
-
-    return time
+data class Light(val x: Int, val y: Int, val vx: Int, val vy: Int) {
+    fun posAt(time: Int) = x + vx * time to y + vy * time
 }
 
-operator fun Pair<Int, Int>.plus(other: Pair<Int, Int>) =
-    first + other.first to second + other.second
+fun part1and2(puzzle: List<List<Int>>): Int {
+    val lights = puzzle.map { Light(it[0], it[1], it[2], it[3]) }
+
+    val solutionTime =
+        (0..Int.MAX_VALUE).first { time -> lights.at(time).map { it.second }.minToMaxRange()!!.size() == 9 }
+
+    lights.at(solutionTime).printLights()
+    return solutionTime
+}
 
 fun IntRange.size() = Math.abs(last - first)
+
+fun List<Light>.at(time: Int) = map { it.posAt(time) }
 
 fun List<Pair<Int, Int>>.printLights() {
     val xRange = map { it.first }.minToMaxRange()!!
