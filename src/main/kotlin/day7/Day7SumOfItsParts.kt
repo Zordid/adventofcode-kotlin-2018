@@ -7,7 +7,9 @@ fun part1(input: List<String>): Any {
     val required = prepareData(input)
 
     val order = mutableListOf<Char>()
-    while (required.filter { !order.contains(it.key) && order.containsAll(it.value) }.keys.min()?.also {
+    while (required.filter { (step, requires) ->
+            !order.contains(step) && order.containsAll(requires)
+        }.keys.min()?.also {
             order.add(it)
         } != null);
 
@@ -21,8 +23,7 @@ fun Map<Char, MutableSet<Char>>.nextToWorkOn(): List<Char> {
 fun part2(input: List<String>, maxWorkers: Int = 5, baseWork: Int = 60): Any {
     val instructions = input.map { line -> line.split(' ').let { it[7][0] to it[1][0] } }
     val required = mutableMapOf<Char, MutableSet<Char>>()
-    instructions.forEach { def ->
-        val (step, requires) = def
+    instructions.forEach { (step, requires) ->
         required.getOrPut(requires) { mutableSetOf() }
         required.getOrPut(step) { mutableSetOf() }.add(requires)
     }
@@ -53,8 +54,7 @@ fun part2(input: List<String>, maxWorkers: Int = 5, baseWork: Int = 60): Any {
 fun prepareData(input: List<String>): Map<Char, Set<Char>> {
     val instructions = input.map { line -> line.split(' ').let { it[7][0] to it[1][0] } }
     val required = mutableMapOf<Char, MutableSet<Char>>()
-    instructions.forEach { def ->
-        val (step, requires) = def
+    instructions.forEach { (step, requires) ->
         required.getOrPut(requires) { mutableSetOf() }
         required.getOrPut(step) { mutableSetOf() }.add(requires)
     }
@@ -76,8 +76,7 @@ fun part2(requirements: Map<Char, Set<Char>>, maxWorkers: Int = 5, baseWork: Int
         order.addAll(finishedSteps.sorted())
         workers -= finishedSteps
 
-        val availableSteps = requirements.filter {
-            val (step, requiredSteps) = it
+        val availableSteps = requirements.filter { (step, requiredSteps) ->
             !order.contains(step) &&
                     !workers.keys.contains(step) &&
                     order.containsAll(requiredSteps)
