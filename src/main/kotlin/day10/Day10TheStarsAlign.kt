@@ -12,15 +12,15 @@ fun part1and2(puzzle: List<List<Int>>): Int {
     val lights = puzzle.map { Light(it[0], it[1], it[2], it[3]) }
 
     val solutionTime =
-        (0..Int.MAX_VALUE).first { time -> lights.at(time).map { it.second }.minToMaxRange()!!.size() == 9 }
+        (0..Int.MAX_VALUE).first { time -> lights.heightAt(time) < lights.heightAt(time + 1) }
 
     lights.at(solutionTime).printLights()
     return solutionTime
 }
 
-fun IntRange.size() = Math.abs(last - first)
-
 fun List<Light>.at(time: Int) = map { it.posAt(time) }
+
+fun List<Light>.heightAt(time: Int) = at(time).map { it.second }.minToMaxRange()!!.let { it.last - it.first }
 
 fun List<Pair<Int, Int>>.printLights() {
     val xRange = map { it.first }.minToMaxRange()!!
