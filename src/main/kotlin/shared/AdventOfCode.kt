@@ -13,9 +13,5 @@ fun <T> readPuzzle(day: Int, extra: String = "", mapper: (String) -> T) =
 fun readPuzzleAsInts(day: Int, extra: String = "") =
     readPuzzle(day, extra) { it.toInt() }
 
-inline fun measureRuntime(block: () -> Unit): Long {
-    val runTime = measureTimeMillis(block)
-    println("Took: $runTime ms")
-    return runTime
-}
+inline fun measureRuntime(block: () -> Unit) = measureTimeMillis(block).also { println("Took: $it ms") }
 

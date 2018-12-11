@@ -16,12 +16,12 @@ fun Pair<Int, Int>.powerLevelOfRegion(serialNumber: Int) =
 
 fun Pair<Int, Int>.maximumPowerLevel(serialNumber: Int): Pair<Int, Int> {
     val (x, y) = this
-    val maxSize = Math.min(301 - x, 301 - y)
+    val maxSizeForCoordinate = Math.min(301 - x, 301 - y)
 
     var power = powerLevelOf(x, y, serialNumber)
     var bestPower = power
     var bestSize = 1
-    for (size in 2..maxSize) {
+    for (size in 2..maxSizeForCoordinate) {
         power += (0 until size - 1).sumBy { delta ->
             powerLevelOf(x + size - 1, y + delta, serialNumber) +
                     powerLevelOf(x + delta, y + size - 1, serialNumber)
@@ -49,7 +49,7 @@ fun part1(serialNumber: Int) =
         .let { "${it.first},${it.second}" }
 
 fun part2(serialNumber: Int) =
-    allCoordinates(300)
+    allCoordinates(300).asIterable()
         .map { c -> c to c.maximumPowerLevel(serialNumber) }
         .maxBy { (_, p) -> p.second }!!
         .let { "${it.first.first},${it.first.second},${it.second.first}" }
