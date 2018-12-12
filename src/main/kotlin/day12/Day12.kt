@@ -5,6 +5,36 @@ import shared.readPuzzle
 val seen = mutableMapOf<String, Pair<Long, Long>>()
 var finish = false
 
+
+class Pots(puzzle: List<String>) {
+
+    val initial = puzzle[0].substring(puzzle[0].indexOf(": ") + 2) to 0L
+    val transforms =
+        puzzle.filter { it.contains("=>") }.map { it.split(" ").let { it[0] to it[2] } }.toMap()
+
+    private fun Pair<String, Long>.nextGeneration(): Pair<String, Long> {
+        val newPattern = "....${this.first}...."
+            .windowed(5).joinToString("") { transforms.getOrDefault(it, ".") }
+        val newStart = this.second - 2 + newPattern.indexOf('#')
+        return newPattern.trim('.') to newStart
+    }
+
+    private fun Pair<String, Long>.sum() = first.mapIndexed { idx, c -> (idx + second) to c }
+        .fold(0L) { acc, (idx, c) -> if (c == '#') acc + idx else acc }
+
+    fun solvePart1(): Any {
+        var p = initial
+
+        println(p)
+        repeat(20) {
+            p = p.nextGeneration()
+            println(p)
+        }
+        return p.sum()
+    }
+
+}
+
 private tailrec fun Pair<String, Long>.transform(
     transforms: Map<String, String>,
     generations: Long

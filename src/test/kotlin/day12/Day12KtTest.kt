@@ -26,4 +26,9 @@ internal class Day12KtTest {
     fun part1() {
         assertEquals(325L, part1(input))
     }
+
+    @Test
+    fun demo() {
+        assertEquals(325L, Pots(input).solvePart1())
+    }
 }
