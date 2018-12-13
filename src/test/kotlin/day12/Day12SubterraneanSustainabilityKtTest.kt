@@ -3,7 +3,7 @@ package day12
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
-internal class Day12KtTest {
+internal class Day12SubterraneanSustainabilityKtTest {
 
     private val input = """initial state: #..#.#..##......###...###
 
