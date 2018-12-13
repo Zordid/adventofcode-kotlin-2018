@@ -3,7 +3,13 @@ package day13
 import day11.allCoordinates
 import shared.readPuzzle
 
-enum class Heading(val dx: Int, val dy: Int) { N(0, -1), E(1, 0), S(0, 1), W(-1, 0) }
+enum class Heading(val dx: Int, val dy: Int) {
+    N(0, -1), E(1, 0), S(0, 1), W(-1, 0);
+
+    val left get() = values()[(ordinal - 1 + values().size) % values().size]
+    val right get() = values()[(ordinal + 1) % values().size]
+}
+
 data class Cart(val x: Int, val y: Int, val heading: Heading, val turnCycle: Int = 0) {
 
     fun move(layout: List<List<Char>>): Cart {
@@ -14,9 +20,9 @@ data class Cart(val x: Int, val y: Int, val heading: Heading, val turnCycle: Int
     private fun newHeading(x: Int, y: Int, layout: List<List<Char>>): Pair<Heading, Int> {
         return when (val element = layout[y][x]) {
             '+' -> when (turnCycle % 3) {
-                0 -> Heading.values()[(heading.ordinal - 1 + Heading.values().size) % Heading.values().size] to turnCycle + 1
+                0 -> heading.left to turnCycle + 1
                 1 -> heading to turnCycle + 1
-                2 -> Heading.values()[(heading.ordinal + 1) % Heading.values().size] to turnCycle + 1
+                2 -> heading.right to turnCycle + 1
                 else -> throw IllegalStateException()
             }
             '/' -> when (heading) {
@@ -36,6 +42,8 @@ data class Cart(val x: Int, val y: Int, val heading: Heading, val turnCycle: Int
         }
     }
 
+    infix fun posEq(other: Cart) = this.x == other.x && this.y == other.y
+
 }
 
 fun Char.toHeading() = when (this) {
@@ -48,49 +56,38 @@ fun Char.toHeading() = when (this) {
 
 fun Char.toCart(x: Int, y: Int) = this.toHeading()?.let { Cart(x, y, it) }
 
-fun part1(carts: List<Cart>, layout: List<List<Char>>): Any {
+fun part1(carts: List<Cart>, layout: List<List<Char>>, show: Boolean = false): Any {
     var cs = carts
     while (cs.none { cart -> (cs - cart).any { it.x == cart.x && it.y == cart.y } }) {
         cs = cs.map { it.move(layout) }
-        //print(cs, layout)
-        //println()
     }
 
-    val crashes = cs.filter { cart -> (cs - cart).any { it.x == cart.x && it.y == cart.y } }
-
-
-    return crashes
+    val crashed = cs.first { cart -> (cs - cart).any { it posEq cart } }
+    if (show) print(cs, layout)
+    println(crashed)
+    return "${crashed.x},${crashed.y}"
 }
 
-fun part2(carts: List<Cart>, layout: List<List<Char>>): Any {
+fun part2(carts: List<Cart>, layout: List<List<Char>>, show: Boolean = false): Any {
     var cs = carts
-    while (true) {
-        val crashes = (cs.filter { cart -> (cs - cart).any { it.x == cart.x && it.y == cart.y } }) +
-                cs.filter { cart -> (cs - cart).any {
-                    (it.move(layout).x == cart.x && it.move(layout).y == cart.y )
-                    &&
-                            (it.x == cart.move(layout).x && it.y == cart.move(layout).y )
-                } }
-
-        if (crashes.isNotEmpty()) {
-            println("${crashes.size} carts crashed!")
-            cs -= crashes
-            println("${cs.size} remaining!")
-
-            if (cs.size == 1) {
-                print(cs+crashes, layout)
-                println()
-                println(cs)
-                println(crashes)
-                return "${cs.single().x},${cs.single().y}"
-            }
-
+    while (cs.size > 1) {
+        cs -= cs.filter { cart ->
+            (cs - cart).any { other -> cart.move(layout) posEq other && cart posEq other.move(layout) }
         }
-
         cs = cs.map { it.move(layout) }
-        //print(cs, layout)
-        //println()
+
+        cs -= cs.filter { cart ->
+            (cs - cart).any { it.x == cart.x && it.y == cart.y }
+        }
     }
+
+    if (cs.isNotEmpty()) {
+        if (show) print(cs, layout)
+        println(cs)
+        return "${cs.single().x},${cs.single().y}"
+    }
+    return ""
+
 }
 
 fun print(carts: List<Cart>, layout: List<List<Char>>) {
@@ -103,6 +100,7 @@ fun print(carts: List<Cart>, layout: List<List<Char>>) {
             else -> print(layout[y].getOrElse(x) { ' ' })
         }
     }
+    println()
 }
 
 fun main(args: Array<String>) {

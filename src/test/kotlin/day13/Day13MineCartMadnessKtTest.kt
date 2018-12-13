@@ -5,14 +5,14 @@ import org.junit.jupiter.api.Test
 
 internal class Day13MineCartMadnessKtTest {
 
-    private val simpleInput = """/->-\
+    private val part1Demo = """/->-\
 |   |  /----\
 | /-+--+-\  |
 | | |  | v  |
 \-+-/  \-+--/
   \------/   """.split("\n")
 
-    val inputCrash = """/>-<\
+    private val part2Demo = """/>-<\
 |   |
 | /<+-\
 | | | v
@@ -22,17 +22,17 @@ internal class Day13MineCartMadnessKtTest {
 
     @Test
     fun demo1() {
-        val layout = extractLayout(simpleInput)
-        val carts = extractCarts(simpleInput)
+        val layout = extractLayout(part1Demo)
+        val carts = extractCarts(part1Demo)
 
-        part1(carts, layout)
+        assertEquals("7,3", part1(carts, layout, true))
     }
 
     @Test
     fun demo2() {
-        val layout = extractLayout(inputCrash)
-        val carts = extractCarts(inputCrash)
+        val layout = extractLayout(part2Demo)
+        val carts = extractCarts(part2Demo)
 
-        assertEquals("6,4", part2(carts, layout))
+        assertEquals("6,4", part2(carts, layout, true))
     }
 }
