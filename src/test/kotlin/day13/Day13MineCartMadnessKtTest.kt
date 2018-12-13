@@ -2,6 +2,7 @@ package day13
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import shared.readPuzzle
 
 internal class Day13MineCartMadnessKtTest {
 
@@ -22,17 +23,23 @@ internal class Day13MineCartMadnessKtTest {
 
     @Test
     fun demo1() {
-        val layout = extractLayout(part1Demo)
-        val carts = extractCarts(part1Demo)
-
-        assertEquals("7,3", part1(carts, layout, true))
+        assertEquals("7,3", part1(part1Demo, true))
     }
 
     @Test
     fun demo2() {
-        val layout = extractLayout(part2Demo)
-        val carts = extractCarts(part2Demo)
+        assertEquals("6,4", part2(part2Demo, true))
+    }
 
-        assertEquals("6,4", part2(carts, layout, true))
+    @Test
+    fun part1() {
+        val puzzle = readPuzzle(13)
+        assertEquals("32,99", part1(puzzle))
+    }
+
+    @Test
+    fun part2() {
+        val puzzle = readPuzzle(13)
+        assertEquals("56,31", part2(puzzle))
     }
 }

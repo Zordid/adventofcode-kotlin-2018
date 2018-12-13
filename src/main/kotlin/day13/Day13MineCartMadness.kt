@@ -3,122 +3,100 @@ package day13
 import day11.allCoordinates
 import shared.readPuzzle
 
-enum class Heading(val dx: Int, val dy: Int) {
-    N(0, -1), E(1, 0), S(0, 1), W(-1, 0);
+enum class Heading(val dx: Int, val dy: Int, val symbol: Char) {
+    N(0, -1, '^'), E(1, 0, '>'),
+    S(0, 1, 'v'), W(-1, 0, '<');
 
     val left get() = values()[(ordinal - 1 + values().size) % values().size]
     val right get() = values()[(ordinal + 1) % values().size]
+
+    companion object {
+        fun fromChar(c: Char) = values().firstOrNull { it.symbol == c }
+    }
 }
 
-data class Cart(val x: Int, val y: Int, val heading: Heading, val turnCycle: Int = 0) {
+data class Cart(var x: Int, var y: Int, var heading: Heading) : Comparable<Cart> {
 
-    fun move(layout: List<List<Char>>): Cart {
-        val ht = newHeading(x + heading.dx, y + heading.dy, layout)
-        return Cart(x + heading.dx, y + heading.dy, ht.first, ht.second % 3)
+    var crashed = false
+    private var turnCycle = 0
+
+    fun move(tracks: List<List<Char>>) {
+        x += heading.dx
+        y += heading.dy
+        heading = newHeading(tracks)
     }
 
-    private fun newHeading(x: Int, y: Int, layout: List<List<Char>>): Pair<Heading, Int> {
-        return when (val element = layout[y][x]) {
-            '+' -> when (turnCycle % 3) {
-                0 -> heading.left to turnCycle + 1
-                1 -> heading to turnCycle + 1
-                2 -> heading.right to turnCycle + 1
-                else -> throw IllegalStateException()
-            }
-            '/' -> when (heading) {
-                Heading.N -> Heading.E to turnCycle
-                Heading.E -> Heading.N to turnCycle
-                Heading.S -> Heading.W to turnCycle
-                Heading.W -> Heading.S to turnCycle
-            }
-            '\\' -> when (heading) {
-                Heading.N -> Heading.W to turnCycle
-                Heading.E -> Heading.S to turnCycle
-                Heading.S -> Heading.E to turnCycle
-                Heading.W -> Heading.N to turnCycle
-            }
-            '|', '-' -> heading to turnCycle
-            else -> throw IllegalStateException("$element when riding $heading")
+    private fun newHeading(tracks: List<List<Char>>) = when (tracks[y][x]) {
+        '+' -> intersectionHandlers[turnCycle++ % 3](heading)
+        '/' -> when (heading) {
+            Heading.N, Heading.S -> heading.right
+            Heading.E, Heading.W -> heading.left
         }
-    }
-
-    infix fun posEq(other: Cart) = this.x == other.x && this.y == other.y
-
-}
-
-fun Char.toHeading() = when (this) {
-    '^' -> Heading.N
-    '>' -> Heading.E
-    'v' -> Heading.S
-    '<' -> Heading.W
-    else -> null
-}
-
-fun Char.toCart(x: Int, y: Int) = this.toHeading()?.let { Cart(x, y, it) }
-
-fun part1(carts: List<Cart>, layout: List<List<Char>>, show: Boolean = false): Any {
-    var cs = carts
-    while (cs.none { cart -> (cs - cart).any { it.x == cart.x && it.y == cart.y } }) {
-        cs = cs.map { it.move(layout) }
-    }
-
-    val crashed = cs.first { cart -> (cs - cart).any { it posEq cart } }
-    if (show) print(cs, layout)
-    println(crashed)
-    return "${crashed.x},${crashed.y}"
-}
-
-fun part2(carts: List<Cart>, layout: List<List<Char>>, show: Boolean = false): Any {
-    var cs = carts
-    while (cs.size > 1) {
-        cs -= cs.filter { cart ->
-            (cs - cart).any { other -> cart.move(layout) posEq other && cart posEq other.move(layout) }
+        '\\' -> when (heading) {
+            Heading.N, Heading.S -> heading.left
+            Heading.E, Heading.W -> heading.right
         }
-        cs = cs.map { it.move(layout) }
-
-        cs -= cs.filter { cart ->
-            (cs - cart).any { it.x == cart.x && it.y == cart.y }
-        }
+        else -> heading
     }
 
-    if (cs.isNotEmpty()) {
-        if (show) print(cs, layout)
-        println(cs)
-        return "${cs.single().x},${cs.single().y}"
+    override fun compareTo(other: Cart) =
+        if (y != other.y) y.compareTo(other.y) else x.compareTo(other.x)
+
+    infix fun posEq(other: Cart) = this !== other && this.x == other.x && this.y == other.y
+
+    fun position() = "$x,$y"
+
+    companion object {
+        val intersectionHandlers = arrayOf<(Heading) -> Heading>(
+            { h -> h.left }, { h -> h }, { h -> h.right }
+        )
     }
-    return ""
 
 }
 
-fun print(carts: List<Cart>, layout: List<List<Char>>) {
-    allCoordinates((layout.maxBy { it.size }!!.size), layout.size, baseCol = 0, baseRow = 0).forEach { (x, y) ->
-        if (x == 0) println()
-        val c = carts.filter { cart -> cart.x == x && cart.y == y }
-        when {
-            c.size == 1 -> print(c.single().heading)
-            c.size > 1 -> print('X')
-            else -> print(layout[y].getOrElse(x) { ' ' })
-        }
-    }
-    println()
-}
+fun Char.toCart(x: Int, y: Int) = Heading.fromChar(this)?.let { Cart(x, y, it) }
 
-fun main(args: Array<String>) {
-    val puzzle = readPuzzle(13)
-
-    val layout = extractLayout(puzzle)
+fun part1(puzzle: List<String>, show: Boolean = false): Any {
+    val tracks = extractTracks(puzzle)
     val carts = extractCarts(puzzle)
 
-    println(part1(carts, layout))
-    println(part2(carts, layout))
+    if (show) printLayout(carts, tracks)
+    while (true) {
+        carts.sorted().forEach { cart ->
+            cart.move(tracks)
+            if (carts.any { it posEq cart }) {
+                return cart.position()
+            }
+        }
+        if (show) printLayout(carts, tracks)
+    }
+}
+
+fun part2(puzzle: List<String>, show: Boolean = false): Any {
+    val tracks = extractTracks(puzzle)
+    var carts = extractCarts(puzzle)
+
+    if (show) printLayout(carts, tracks)
+    while (carts.size > 1) {
+        carts.sorted().forEach { cart ->
+            cart.move(tracks)
+            carts.firstOrNull { !it.crashed && cart posEq it }?.let { crashedInto ->
+                cart.crashed = true
+                crashedInto.crashed = true
+            }
+        }
+        carts = carts.filter { !it.crashed }
+        if (show) printLayout(carts, tracks)
+    }
+    return carts.single().position()
 }
 
 fun extractCarts(puzzle: List<String>) =
-    puzzle.mapIndexed { y, s -> s.mapIndexed { x, c -> c.toCart(x, y) } }.flatten().filterNotNull()
+    puzzle.mapIndexed { y, s -> s.mapIndexed { x, c -> c.toCart(x, y) }.filterNotNull() }.flatten()
 
-fun extractLayout(puzzle: List<String>): List<List<Char>> {
-    return puzzle.map {
-        it.toCharArray().map {
+fun extractTracks(puzzle: List<String>) =
+    puzzle.map { row ->
+        row.toCharArray().map {
             when (it) {
                 '<', '>' -> '-'
                 '^', 'v' -> '|'
@@ -126,4 +104,24 @@ fun extractLayout(puzzle: List<String>): List<List<Char>> {
             }
         }
     }
+
+fun printLayout(carts: List<Cart>, tracks: List<List<Char>>) {
+    allCoordinates((tracks.maxBy { it.size }!!.size), tracks.size, baseCol = 0, baseRow = 0)
+        .forEach { (x, y) ->
+            if (x == 0) println()
+            val c = carts.filter { cart -> !cart.crashed && cart.x == x && cart.y == y }
+            when {
+                c.size == 1 -> print(c.single().heading.symbol)
+                c.size > 1 -> print('X')
+                else -> print(tracks[y].getOrElse(x) { ' ' })
+            }
+        }
+    println()
+}
+
+fun main(args: Array<String>) {
+    val puzzle = readPuzzle(13)
+
+    println(part1(puzzle))
+    println(part2(puzzle))
 }
