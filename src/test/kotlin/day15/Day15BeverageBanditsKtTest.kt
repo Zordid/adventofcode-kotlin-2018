@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import shared.readPuzzle
 
-internal class Day15KtTest {
+internal class Day15BeverageBanditsKtTest {
 
     //    #######       #######       #######       #######       #######
     //    #E..G.#       #E.?G?#       #E.@G.#       #E.!G.#       #E.+G.#

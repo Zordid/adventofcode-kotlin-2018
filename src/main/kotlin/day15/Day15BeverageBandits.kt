@@ -1,6 +1,7 @@
 package day15
 
-import shared.breadthFirstSearch
+import shared.filterFirstReached
+import shared.measureRuntime
 import shared.readPuzzle
 
 data class Coordinate(val x: Int, val y: Int) : Comparable<Coordinate> {
@@ -24,36 +25,23 @@ class Player(val type: Char, x: Int, y: Int, val attackPoints: Int = 3) : Compar
     val isAlive get() = hitPoints > 0
 
     fun determineTarget(map: List<CharArray>, aliveEnemies: List<Player>): Coordinate? {
-        val reachableTargetsWithDistance = aliveEnemies
-            .flatMap { it.freeNeighborFields(map) }
-            .map { it to map.shortestPathLength(position, it) }
-            .filter { it.second > 0 }
-            .sortedBy { it.second }
+        val potentialTargets = aliveEnemies.flatMap { it.freeNeighborFields(map) }
+        val fastestReachableTargets = potentialTargets.map { it.x to it.y }
+            .filterFirstReached(position.x to position.y, map.mapFun())
+            .map { Coordinate(it.first, it.second) }
 
-        if (reachableTargetsWithDistance.isEmpty())
-            return null
-
-        val shortestDistance = reachableTargetsWithDistance.first().second
-        return reachableTargetsWithDistance
-            .filter { it.second == shortestDistance }
-            .sortedBy { it.first }
-            .first().first
+        return fastestReachableTargets.sorted().firstOrNull()
     }
 
     private fun move(map: List<CharArray>, aliveEnemies: List<Player>) {
         val destination = determineTarget(map, aliveEnemies) ?: return
 
-        val possibleNeighborsWithPathLength = freeNeighborFields(map)
-            .map { it to map.shortestPathLength(it, destination) }
-            .sortedBy { it.second }
+        val stepField = freeNeighborFields(map).map { it.x to it.y }
+            .filterFirstReached(destination.x to destination.y, map.mapFun())
+            .map { Coordinate(it.first, it.second) }
+            .sorted().first()
 
-        val min = possibleNeighborsWithPathLength.first().second
-        val step = possibleNeighborsWithPathLength
-            .filter { it.second == min }
-            .sortedBy { it.first }
-            .first().first
-
-        position = step
+        position = stepField
     }
 
     private fun attack(aliveEnemiesInRange: List<Player>) {
@@ -90,29 +78,9 @@ class Player(val type: Char, x: Int, y: Int, val attackPoints: Int = 3) : Compar
 
 }
 
-fun List<CharArray>.at(c: Coordinate) = this[c.y][c.x]
-
-fun List<CharArray>.freeNeighbors(c: Coordinate) =
-    c.neighbors.filter { at(it) == '.' }
-
-fun List<CharArray>.shortestPathLength(s: Coordinate, d: Coordinate) =
-    breadthFirstSearch(s, { p -> this.freeNeighbors(p) }) { it == d }.size - 1
-
-fun List<String>.findAll(d: Char) =
-    mapIndexed { y, s ->
-        s.mapIndexed { x, c ->
-            if (c == d) Coordinate(x, y) else null
-        }.filterNotNull()
-    }.flatten().sorted()
-
-fun generateMap(layout: List<CharArray>, players: List<Player>) =
-    layout.map { it.clone() }.also {
-        players.forEach { p -> it[p.position.y][p.position.x] = p.type }
-    }
-
 class Combat(puzzle: List<String>, elfPower: Int = 3, private val logging: Boolean = false) {
-    private val elves = puzzle.findAll('E').map { (x, y) -> Player('E', x, y, attackPoints = elfPower) }
-    private val goblins = puzzle.findAll('G').map { (x, y) -> Player('G', x, y) }
+    private val elves = puzzle.extractCoordinatesOf('E').map { (x, y) -> Player('E', x, y, attackPoints = elfPower) }
+    private val goblins = puzzle.extractCoordinatesOf('G').map { (x, y) -> Player('G', x, y) }
     val players = (elves + goblins).toList()
 
     private var fullRoundsPlayed = 0
@@ -121,7 +89,7 @@ class Combat(puzzle: List<String>, elfPower: Int = 3, private val logging: Boole
         it.replace('E', '.').replace('G', '.').toCharArray()
     }
 
-    val alivePlayers get() = players.filter { it.isAlive }
+    private val alivePlayers get() = players.filter { it.isAlive }
 
     fun playRound(): Boolean {
         alivePlayers.sorted().forEach { player ->
@@ -162,6 +130,24 @@ class Combat(puzzle: List<String>, elfPower: Int = 3, private val logging: Boole
 
 }
 
+fun List<CharArray>.mapFun() = { x: Int, y: Int -> this[y][x] == '.' }
+
+fun List<CharArray>.at(c: Coordinate) = this[c.y][c.x]
+
+fun List<CharArray>.freeNeighbors(c: Coordinate) = c.neighbors.filter { at(it) == '.' }
+
+fun List<String>.extractCoordinatesOf(type: Char) =
+    mapIndexed { y, s ->
+        s.mapIndexed { x, c ->
+            if (c == type) Coordinate(x, y) else null
+        }.filterNotNull()
+    }.flatten().sorted()
+
+fun generateMap(layout: List<CharArray>, players: List<Player>) =
+    layout.map { it.clone() }.also {
+        players.forEach { p -> it[p.position.y][p.position.x] = p.type }
+    }
+
 fun part1(puzzle: List<String>) = Combat(puzzle).battle()
 
 fun part2(puzzle: List<String>) =
@@ -172,6 +158,10 @@ fun part2(puzzle: List<String>) =
 fun main(args: Array<String>) {
     val puzzle = readPuzzle(15)
 
-    println(part1(puzzle))
-    println(part2(puzzle))
+    measureRuntime {
+        println(part1(puzzle))
+    }
+    measureRuntime {
+        println(part2(puzzle))
+    }
 }
