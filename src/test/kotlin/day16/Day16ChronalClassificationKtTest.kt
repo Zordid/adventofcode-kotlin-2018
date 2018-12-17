@@ -14,7 +14,7 @@ internal class Day16ChronalClassificationKtTest {
             After:  [3, 2, 2, 1]
         """.trimIndent().split("\n")
 
-        assertEquals(listOf(9 to setOf(1, 2, 9)), readSamples(input))
+        assertEquals(listOf(9 to setOf("addi", "mulr", "seti")), readSamples(input))
     }
 
     @Test

@@ -3,6 +3,27 @@ package day16
 import shared.extractAllInts
 import shared.readPuzzle
 
+typealias Instruction = (a: Int, b: Int, c: Int, r: IntArray) -> Unit
+
+val instructionSet = mapOf<String, Instruction>(
+    "addr" to { a, b, c, r -> r[c] = r[a] + r[b] },
+    "addi" to { a, b, c, r -> r[c] = r[a] + b },
+    "mulr" to { a, b, c, r -> r[c] = r[a] * r[b] },
+    "muli" to { a, b, c, r -> r[c] = r[a] * b },
+    "banr" to { a, b, c, r -> r[c] = r[a] and r[b] },
+    "bani" to { a, b, c, r -> r[c] = r[a] and b },
+    "borr" to { a, b, c, r -> r[c] = r[a] or r[b] },
+    "bori" to { a, b, c, r -> r[c] = r[a] or b },
+    "setr" to { a, _, c, r -> r[c] = r[a] },
+    "seti" to { a, _, c, r -> r[c] = a },
+    "gtir" to { a, b, c, r -> r[c] = if (a > r[b]) 1 else 0 },
+    "gtri" to { a, b, c, r -> r[c] = if (r[a] > b) 1 else 0 },
+    "gtrr" to { a, b, c, r -> r[c] = if (r[a] > r[b]) 1 else 0 },
+    "eqir" to { a, b, c, r -> r[c] = if (a == r[b]) 1 else 0 },
+    "eqri" to { a, b, c, r -> r[c] = if (r[a] == b) 1 else 0 },
+    "eqrr" to { a, b, c, r -> r[c] = if (r[a] == r[b]) 1 else 0 }
+)
+
 fun part1(puzzle: List<String>): Int {
     val samples = readSamples(puzzle)
     return samples.count { (_, couldBe) -> couldBe.size >= 3 }
@@ -10,77 +31,42 @@ fun part1(puzzle: List<String>): Int {
 
 fun part2(puzzle: List<String>): Int {
     val samples = readSamples(puzzle)
-    val allowedMappings = createAllowedMappings(samples)
+    val allowedMappings = createAllowedMappings(samples, instructionSet.keys)
     val translationTable = determinePossibleMappingTables(allowedMappings).single()
 
     val instructions = readProgram(puzzle)
-    var regs = listOf(0, 0, 0, 0)
-    instructions.forEach { regs = execute(it, regs, translationTable[it[0]]!!)!! }
-    return regs[0]
-}
-
-fun execute(instruction: List<Int>, reg: List<Int>, overrideOpCode: Int = -1): List<Int>? {
-    val (opCode, a, b, c) = instruction
-
-    try {
-        val result = when (if (overrideOpCode >= 0) overrideOpCode else opCode) {
-            // addr
-            0 -> reg[a] + reg[b]
-            // addi
-            1 -> reg[a] + b
-            // mulr
-            2 -> reg[a] * reg[b]
-            // muli
-            3 -> reg[a] * b
-            // banr
-            4 -> reg[a] and reg[b]
-            // bani
-            5 -> reg[a] and b
-            // borr
-            6 -> reg[a] or reg[b]
-            // bori
-            7 -> reg[a] or b
-            // setr
-            8 -> reg[a]
-            // seti
-            9 -> a
-            // gtir
-            10 -> if (a > reg[b]) 1 else 0
-            // gtri
-            11 -> if (reg[a] > b) 1 else 0
-            // gtrr
-            12 -> if (reg[a] > reg[b]) 1 else 0
-            // eqir
-            13 -> if (a == reg[b]) 1 else 0
-            // eqri
-            14 -> if (reg[a] == b) 1 else 0
-            // eqrr
-            15 -> if (reg[a] == reg[b]) 1 else 0
-            else -> throw IllegalArgumentException("$opCode")
-        }
-        return reg.toMutableList().also { it[c] = result }
-    } catch (e: IndexOutOfBoundsException) {
-        return null
+    val regs = IntArray(4)
+    instructions.forEach { (opcode, a, b, c) ->
+        instructionSet[translationTable[opcode]]!!(a, b, c, regs)
     }
+    return regs[0]
 }
 
 fun readSamples(puzzle: List<String>) =
     puzzle.windowed(4, step = 4, partialWindows = true)
         .filter { it.size >= 3 && it[0].startsWith("Before:") }
-        .map {
-            val before = it[0].extractAllInts().toList()
-            val instruction = it[1].extractAllInts().toList()
-            val after = it[2].extractAllInts().toList()
+        .map { (l1, l2, l3) ->
+            val before = l1.extractAllInts().toList()
+            val instruction = l2.extractAllInts().toList()
+            val after = l3.extractAllInts().toList()
 
-            instruction[0] to ((0..15).filter { testOpCode ->
-                execute(instruction, before, testOpCode) == after
-            }.toSet())
+            val (opcode, a, b, c) = instruction
+
+            opcode to (instructionSet.filterValues { mnemonic ->
+                val reg = before.toIntArray()
+                try {
+                    mnemonic(a, b, c, reg)
+                    reg.toList() == after
+                } catch (e: Exception) {
+                    false
+                }
+            }.keys)
         }
 
 private fun readProgram(puzzle: List<String>) =
     puzzle.takeLastWhile { it.isNotEmpty() }.map { it.extractAllInts().toList() }
 
-private fun determinePossibleMappingTables(allowed: Map<Int, Set<Int>>): List<Map<Int, Int>> {
+private fun <T> determinePossibleMappingTables(allowed: Map<Int, Set<T>>): List<Map<Int, T>> {
     val nextCandidate = allowed.entries.sortedBy { (_, v) -> v.size }.first()
     if (nextCandidate.value.isEmpty())
         return emptyList()
@@ -96,11 +82,11 @@ private fun determinePossibleMappingTables(allowed: Map<Int, Set<Int>>): List<Ma
     }
 }
 
-private fun Map<Int, Set<Int>>.reduceBy(assignment: Pair<Int, Int>) =
+private fun <T> Map<Int, Set<T>>.reduceBy(assignment: Pair<Int, T>) =
     (this - assignment.first).mapValues { (_, v) -> v - assignment.second }
 
-private fun createAllowedMappings(samples: List<Pair<Int, Set<Int>>>): Map<Int, Set<Int>> {
-    val initialAllowed = (0..15).map { it to (0..15).toSet() }.toMap().toMutableMap()
+private fun <T> createAllowedMappings(samples: List<Pair<Int, Set<T>>>, all: Set<T>): Map<Int, Set<T>> {
+    val initialAllowed = (0 until all.size).map { it to all }.toMap().toMutableMap()
     return samples.fold(initialAllowed) { acc, pair ->
         val (opCode, couldBe) = pair
         acc[opCode] = acc[opCode]!! intersect couldBe
