@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import shared.readPuzzle
 
-internal class Day17KtTest {
+internal class Day17ReservoirResearchKtTest {
 
     @Test
     fun demo1and2() {
