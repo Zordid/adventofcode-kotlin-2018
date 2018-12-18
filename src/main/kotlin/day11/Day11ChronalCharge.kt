@@ -1,5 +1,7 @@
 package day11
 
+import shared.Coordinate
+import shared.allCoordinates
 import shared.measureRuntime
 import shared.readPuzzle
 
@@ -9,13 +11,12 @@ private fun powerLevelOf(x: Int, y: Int, serialNumber: Int): Int {
     return ((powerLevel % 1000) / 100) - 5
 }
 
-fun Pair<Int, Int>.powerLevel(serialNumber: Int) = powerLevelOf(first, second, serialNumber)
+fun Coordinate.powerLevel(serialNumber: Int) = powerLevelOf(x, y, serialNumber)
 
-fun Pair<Int, Int>.powerLevelOfRegion(serialNumber: Int) =
-    allCoordinates(3, 3, first, second).sumBy { (x, y) -> powerLevelOf(x, y, serialNumber) }
+fun Coordinate.powerLevelOfRegion(serialNumber: Int) =
+    allCoordinates(3, 3, x, y).sumBy { it.powerLevel(serialNumber) }
 
-fun Pair<Int, Int>.maximumPowerLevel(serialNumber: Int): Pair<Int, Int> {
-    val (x, y) = this
+fun Coordinate.maximumPowerLevel(serialNumber: Int): Pair<Int, Int> {
     val maxSizeForCoordinate = Math.min(301 - x, 301 - y)
 
     var power = powerLevelOf(x, y, serialNumber)
@@ -36,23 +37,16 @@ fun Pair<Int, Int>.maximumPowerLevel(serialNumber: Int): Pair<Int, Int> {
     return (bestSize to bestPower)
 }
 
-fun allCoordinates(columns: Int, rows: Int = columns, baseCol: Int = 1, baseRow: Int = 1) = sequence {
-    for (row in baseRow until baseRow + rows) {
-        for (col in baseCol until baseCol + columns)
-            yield(col to row)
-    }
-}
-
 fun part1(serialNumber: Int) =
-    allCoordinates(298)
+    allCoordinates(298, baseCol = 1, baseRow = 1)
         .maxBy { it.powerLevelOfRegion(serialNumber) }!!
-        .let { "${it.first},${it.second}" }
+        .let { "${it.x},${it.y}" }
 
 fun part2(serialNumber: Int) =
-    allCoordinates(300).asIterable()
+    allCoordinates(300, baseCol = 1, baseRow = 1).asIterable()
         .map { c -> c to c.maximumPowerLevel(serialNumber) }
         .maxBy { (_, p) -> p.second }!!
-        .let { "${it.first.first},${it.first.second},${it.second.first}" }
+        .let { "${it.first.x},${it.first.y},${it.second.first}" }
 
 fun main(args: Array<String>) {
     val puzzle = readPuzzle(11).single().toInt()

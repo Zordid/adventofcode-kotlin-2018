@@ -15,10 +15,10 @@ fun floodFill(start: Coordinate, layout: MapDefinition): Sequence<Pair<Int, Set<
             nodesOnNextLevel = mutableSetOf()
             nodesOnLevel.forEach { coordinate ->
                 nodesOnNextLevel.addAll(coordinate.manhattanNeighbors
-                    .filter { coordinate ->
-                        layout(coordinate) &&
-                                !nodesOnPreviousLevel.contains(coordinate) &&
-                                !nodesOnLevel.contains(coordinate)
+                    .filter { neighbor ->
+                        layout(neighbor) &&
+                                !nodesOnPreviousLevel.contains(neighbor) &&
+                                !nodesOnLevel.contains(neighbor)
                     }
                 )
             }

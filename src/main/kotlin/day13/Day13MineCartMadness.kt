@@ -1,6 +1,6 @@
 package day13
 
-import day11.allCoordinates
+import shared.allCoordinates
 import shared.readPuzzle
 
 enum class Heading(val dx: Int, val dy: Int, val symbol: Char) {
@@ -106,7 +106,7 @@ fun extractTracks(puzzle: List<String>) =
     }
 
 fun printLayout(carts: List<Cart>, tracks: List<List<Char>>) {
-    allCoordinates((tracks.maxBy { it.size }!!.size), tracks.size, baseCol = 0, baseRow = 0)
+    allCoordinates((tracks.maxBy { it.size }!!.size), tracks.size)
         .forEach { (x, y) ->
             if (x == 0) println()
             val c = carts.filter { cart -> !cart.crashed && cart.x == x && cart.y == y }

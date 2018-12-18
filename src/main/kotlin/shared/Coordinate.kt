@@ -17,6 +17,10 @@ data class Coordinate(val x: Int, val y: Int) : Comparable<Coordinate> {
 
     override fun toString() = "($x,$y)"
 
+    fun isAtEdge(range: Pair<IntRange, IntRange>) =
+        (x == range.first.start || x == range.first.endInclusive) ||
+                (y == range.second.start || y == range.second.endInclusive)
+
     companion object {
         private val allDeltas = listOf(
             -1 to -1, 0 to -1, 1 to -1,
@@ -32,3 +36,19 @@ data class Coordinate(val x: Int, val y: Int) : Comparable<Coordinate> {
 }
 
 infix fun Int.toY(other: Int) = Coordinate(this, other)
+
+fun allCoordinates(columns: Int, rows: Int = columns, baseCol: Int = 0, baseRow: Int = 0) =
+    ((baseCol until baseCol + columns) to (baseRow until baseRow + rows)).allCoordinates()
+
+fun Pair<IntRange, IntRange>.allCoordinates() = sequence {
+    for (y in second) {
+        for (x in first)
+            yield(x toY y)
+    }
+}
+
+fun List<Coordinate>.range() =
+    map { it.x }.minToMaxRange()?.let { xRange -> xRange to map { it.y }.minToMaxRange()!! }
+
+fun Pair<IntRange, IntRange>.increaseBy(margin: Int) =
+    first.start - margin..first.endInclusive + margin to second.start - margin..second.endInclusive + margin
