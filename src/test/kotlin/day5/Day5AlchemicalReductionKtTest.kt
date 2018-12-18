@@ -3,7 +3,7 @@ package day5
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
-internal class Day5KtTest {
+internal class Day5AlchemicalReductionKtTest {
 
     private val polymer = "dabAcCaCBAcCcaDA"
 

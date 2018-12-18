@@ -3,7 +3,7 @@ package day7
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
-internal class Day7KtTest {
+internal class Day7SumOfItsPartsKtTest {
 
     private val input = """Step C must be finished before step A can begin.
 Step C must be finished before step F can begin.

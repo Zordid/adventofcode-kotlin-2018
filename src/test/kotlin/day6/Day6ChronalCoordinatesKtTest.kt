@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import shared.extractAllInts
 
-internal class Day6KtTest {
+internal class Day6ChronalCoordinatesKtTest {
 
     private val input = """1, 1
 1, 6

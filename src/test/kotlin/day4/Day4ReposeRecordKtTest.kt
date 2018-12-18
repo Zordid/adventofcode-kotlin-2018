@@ -3,7 +3,7 @@ package day4
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
-internal class Day4KtTest {
+internal class Day4ReposeRecordKtTest {
 
     private val input = """[1518-11-01 00:00] Guard #10 begins shift
 [1518-11-01 00:05] falls asleep
