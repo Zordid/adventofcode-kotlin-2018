@@ -3,20 +3,20 @@ package day6
 import shared.*
 
 fun part1(puzzle: List<String>): Int {
-    val coordinates = puzzle.map { it.extractAllInts().toList().let { (x, y) -> x toY y } }
-    val range = coordinates.range()!!
+    val coordinates = puzzle.map { it.extractCoordinate() }
+    val area = coordinates.area()
 
     val infinite = mutableSetOf<Int>()
     val ownedArea = IntArray(coordinates.size)
 
-    range.allCoordinates().forEach { c ->
-        val atEdge = c.isAtEdge(range)
+    area.forEach { test ->
+        val atEdge = test isAtEdgeOf area
         coordinates
-            .mapIndexed { idx, owner -> idx to owner }
-            .minByIfUnique { c manhattanDistanceTo it.second }
-            ?.also { (idx, _) ->
-                if (atEdge) infinite.add(idx)
-                ownedArea[idx]++
+            .mapIndexed { idx, c -> idx to c }
+            .minByIfUnique { (_, c) -> test manhattanDistanceTo c }
+            ?.also { (belongsTo, _) ->
+                if (atEdge) infinite.add(belongsTo)
+                ownedArea[belongsTo]++
             }
     }
 
@@ -24,25 +24,21 @@ fun part1(puzzle: List<String>): Int {
 }
 
 tailrec fun part2(puzzle: List<String>, threshold: Int = 10000, safetyMargin: Int = 0): Int {
-    val coordinates = puzzle.map { it.extractAllInts().toList().let { (x, y) -> x toY y } }
-
-    val (rangeX, rangeY) = coordinates.range()!!.increaseBy(safetyMargin)
+    val coordinates = puzzle.map { it.extractCoordinate() }
+    val area = coordinates.area() + safetyMargin
 
     var safeAreaTouchedEdge = false
-    val size = rangeY.sumBy { row ->
-        if (!safeAreaTouchedEdge)
-            rangeX.count { col ->
-                val coordinate = col toY row
-                val atEdge = coordinate.isAtEdge(rangeX to rangeY)
-                val belongsToSafeArea = !safeAreaTouchedEdge &&
-                        coordinates.sumBy { coordinate manhattanDistanceTo it } < threshold
-                if (belongsToSafeArea && atEdge) {
-                    println("Warning: safe area reached outer bounds, increasing margin to ${safetyMargin + 1}!")
-                    safeAreaTouchedEdge = true
-                }
-                belongsToSafeArea
-            } else
-            0
+    val size = area.count { test ->
+        if (safeAreaTouchedEdge)
+            return@count false
+
+        val atEdge = test isAtEdgeOf area
+        val belongsToSafeArea = coordinates.sumBy { test manhattanDistanceTo it } < threshold
+        if (belongsToSafeArea && atEdge) {
+            println("Warning: safe area reached outer bounds, increasing margin to ${safetyMargin + 1}!")
+            safeAreaTouchedEdge = true
+        }
+        belongsToSafeArea
     }
     return if (safeAreaTouchedEdge) part2(puzzle, threshold, safetyMargin + 1) else size
 }
