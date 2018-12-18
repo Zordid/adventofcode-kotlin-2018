@@ -33,11 +33,12 @@ data class VClay(val x: IntRange, val y: Int) : Clay() {
 }
 
 enum class Element(val c: Char) { Free('.'), Clay('#'), Soaked('|'), Water('~');
-
     val blocksWater: Boolean get() = this == Clay || this == Water
     val isWet: Boolean get() = this == Water || this == Soaked
     override fun toString(): String = c.toString()
 }
+
+private const val initialSourceX = 500
 
 class Scan(puzzle: List<String>) {
 
@@ -67,41 +68,36 @@ class Scan(puzzle: List<String>) {
         map[y][x - minX] = e
     }
 
-    private fun leftRight(x: Int, y: Int): Pair<Int, Int> {
-        val left =
-            (x downTo minX).first { this[it, y].blocksWater || !this[it, y + 1].blocksWater }
-        val right =
-            (x..maxX).first { this[it, y].blocksWater || !this[it, y + 1].blocksWater }
-        return left to right
-    }
+    private fun leftRight(x: Int, y: Int): Pair<Int, Int> =
+        (x - 1 downTo minX).first { this[it, y].blocksWater || !this[it, y + 1].blocksWater } to
+                (x + 1..maxX).first { this[it, y].blocksWater || !this[it, y + 1].blocksWater }
 
-    fun pourWater(x: Int = 500, y: Int = 0) {
+    fun pourWater(x: Int = initialSourceX, y: Int = 0) {
         if (this[x, y].isWet) return
 
         var dropY = y
+        var prev: Element? = null
         while (!this[x, dropY + 1].blocksWater && dropY <= maxY) {
+            prev = this[x, dropY]
             this[x, dropY] = Element.Soaked
             dropY++
         }
-        val alreadySoaked = this[x, dropY] == Element.Soaked
-        if (dropY + 1 <= maxY && !alreadySoaked) {
+        val alreadySoaked = prev == Element.Soaked
+        if (dropY < maxY && !alreadySoaked) {
             do {
                 val (left, right) = leftRight(x, dropY)
-                val openLeft = !this[left, dropY].blocksWater
-                val openRight = !this[right, dropY].blocksWater
-                val closed = !openLeft && !openRight
+                val blockedLeft = this[left, dropY].blocksWater
+                val blockedRight = this[right, dropY].blocksWater
+                val closed = blockedLeft && blockedRight
 
-                if (closed) {
-                    (left + 1 until right).forEach { this[it, dropY] = Element.Water }
-                } else {
-                    (left + 1 until right).forEach { this[it, dropY] = Element.Soaked }
-                    if (openLeft) {
-                        pourWater(left, dropY)
-                    }
-                    if (openRight) {
-                        pourWater(right, dropY)
-                    }
-                }
+                val fillWith = if (closed) Element.Water else Element.Soaked
+                (left + 1 until right).forEach { this[it, dropY] = fillWith }
+
+                if (!blockedLeft)
+                    pourWater(left, dropY)
+                if (!blockedRight)
+                    pourWater(right, dropY)
+
                 dropY--
             } while (closed)
         }
@@ -110,7 +106,7 @@ class Scan(puzzle: List<String>) {
     fun print() {
         for (y in 0..maxY) {
             for (x in minX..maxX) {
-                if (x == 500 && y == 0)
+                if (x == initialSourceX && y == 0)
                     print('+')
                 else {
                     val element = this[x, y]
