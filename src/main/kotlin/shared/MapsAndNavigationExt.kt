@@ -1,11 +1,11 @@
 package shared
 
-private val deltas = sequenceOf(0 to -1, 1 to 0, 0 to 1, -1 to 0)
+typealias MapDefinition = (Coordinate) -> Boolean
 
-fun floodFill(start: Pair<Int, Int>, layout: (Int, Int) -> Boolean): Sequence<Pair<Int, Set<Pair<Int, Int>>>> =
+fun floodFill(start: Coordinate, layout: MapDefinition): Sequence<Pair<Int, Set<Coordinate>>> =
     sequence {
-        var nodesOnPreviousLevel: MutableSet<Pair<Int, Int>>
-        var nodesOnLevel = mutableSetOf<Pair<Int, Int>>()
+        var nodesOnPreviousLevel: MutableSet<Coordinate>
+        var nodesOnLevel = mutableSetOf<Coordinate>()
         var nodesOnNextLevel = mutableSetOf(start)
         var level = 0
         while (nodesOnNextLevel.isNotEmpty()) {
@@ -13,26 +13,25 @@ fun floodFill(start: Pair<Int, Int>, layout: (Int, Int) -> Boolean): Sequence<Pa
             nodesOnLevel = nodesOnNextLevel
             yield(level++ to nodesOnLevel)
             nodesOnNextLevel = mutableSetOf()
-            nodesOnLevel.forEach { (x, y) ->
-                nodesOnNextLevel.addAll(deltas.map { x + it.first to y + it.second }
-                    .filter {
-                        layout(it.first, it.second) &&
-                                !nodesOnPreviousLevel.contains(it) && !nodesOnLevel.contains(it)
+            nodesOnLevel.forEach { coordinate ->
+                nodesOnNextLevel.addAll(coordinate.manhattanNeighbors
+                    .filter { coordinate ->
+                        layout(coordinate) &&
+                                !nodesOnPreviousLevel.contains(coordinate) &&
+                                !nodesOnLevel.contains(coordinate)
                     }
                 )
             }
         }
     }
 
-fun Collection<Pair<Int, Int>>.filterFirstReached(
-    from: Pair<Int, Int>,
-    layout: (Int, Int) -> Boolean
-): List<Pair<Int, Int>> {
-    if (this.isEmpty())
+fun Collection<Coordinate>.filterFirstReached(from: Coordinate, layout: MapDefinition): List<Coordinate> {
+    if (isEmpty())
         return emptyList()
+
     val firstReached = floodFill(from, layout)
-        .dropWhile { (level, nodesOnLevel) -> this.none { nodesOnLevel.contains(it) } }
+        .dropWhile { (_, nodesOnLevel) -> none { nodesOnLevel.contains(it) } }
         .firstOrNull()?.second ?: return emptyList()
 
-    return this.filter { firstReached.contains(it) }
+    return filter { firstReached.contains(it) }
 }

@@ -2,6 +2,7 @@ package day15
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import shared.Coordinate
 import shared.readPuzzle
 
 internal class Day15BeverageBanditsKtTest {

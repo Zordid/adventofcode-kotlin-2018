@@ -1,47 +1,27 @@
 package day15
 
-import shared.filterFirstReached
-import shared.measureRuntime
-import shared.readPuzzle
-
-data class Coordinate(val x: Int, val y: Int) : Comparable<Coordinate> {
-    val neighbors get() = deltas.map { transposeBy(it) }
-
-    override fun compareTo(other: Coordinate) =
-        if (y == other.y) x.compareTo(other.x) else y.compareTo(other.y)
-
-    infix fun distanceTo(other: Coordinate) = Math.abs(y - other.y) + Math.abs(x - other.x)
-
-    private fun transposeBy(delta: Pair<Int, Int>) = Coordinate(x + delta.first, y + delta.second)
-
-    companion object {
-        val deltas = listOf(0 to -1, -1 to 0, 1 to 0, 0 to 1)
-    }
-}
+import shared.*
 
 class Player(val type: Char, x: Int, y: Int, val attackPoints: Int = 3) : Comparable<Player> {
-    var position = Coordinate(x, y)
+    var position = x toY y
     var hitPoints = 200
     val isAlive get() = hitPoints > 0
 
     fun determineTarget(map: List<CharArray>, aliveEnemies: List<Player>): Coordinate? {
         val potentialTargets = aliveEnemies.flatMap { it.freeNeighborFields(map) }
-        val fastestReachableTargets = potentialTargets.map { it.x to it.y }
-            .filterFirstReached(position.x to position.y, map.mapFun())
-            .map { Coordinate(it.first, it.second) }
+        val fastestReachableTargets = potentialTargets
+            .filterFirstReached(position, map.mapFun())
 
         return fastestReachableTargets.sorted().firstOrNull()
     }
 
     private fun move(map: List<CharArray>, aliveEnemies: List<Player>) {
         val destination = determineTarget(map, aliveEnemies) ?: return
-
-        val stepField = freeNeighborFields(map).map { it.x to it.y }
-            .filterFirstReached(destination.x to destination.y, map.mapFun())
-            .map { Coordinate(it.first, it.second) }
+        val firstStepTo = freeNeighborFields(map)
+            .filterFirstReached(destination, map.mapFun())
             .sorted().first()
 
-        position = stepField
+        position = firstStepTo
     }
 
     private fun attack(aliveEnemiesInRange: List<Player>) {
@@ -70,7 +50,7 @@ class Player(val type: Char, x: Int, y: Int, val attackPoints: Int = 3) : Compar
 
     override fun compareTo(other: Player) = position.compareTo(other.position)
 
-    private infix fun distanceTo(other: Player) = position distanceTo other.position
+    private infix fun distanceTo(other: Player) = position manhattanDistanceTo other.position
 
     private fun freeNeighborFields(map: List<CharArray>) = map.freeNeighbors(position)
 
@@ -112,7 +92,7 @@ class Combat(puzzle: List<String>, elfPower: Int = 3, private val logging: Boole
 
         val remainingHitPoints = alivePlayers.sumBy { it.hitPoints }
         if (logging) {
-            println("Finished after $fullRoundsPlayed full rounds.")
+            println("Finished futureWithPrint $fullRoundsPlayed full rounds.")
             val winner = if (elvesWin) "Elves" else "Goblins"
             println("$winner win with $remainingHitPoints remaining hit points.")
         }
@@ -130,16 +110,16 @@ class Combat(puzzle: List<String>, elfPower: Int = 3, private val logging: Boole
 
 }
 
-fun List<CharArray>.mapFun() = { x: Int, y: Int -> this[y][x] == '.' }
+fun List<CharArray>.mapFun() = { c: Coordinate -> this[c.y][c.x] == '.' }
 
 fun List<CharArray>.at(c: Coordinate) = this[c.y][c.x]
 
-fun List<CharArray>.freeNeighbors(c: Coordinate) = c.neighbors.filter { at(it) == '.' }
+fun List<CharArray>.freeNeighbors(c: Coordinate) = c.manhattanNeighbors.filter { at(it) == '.' }
 
-fun List<String>.extractCoordinatesOf(type: Char) =
+fun List<String>.extractCoordinatesOf(search: Char) =
     mapIndexed { y, s ->
         s.mapIndexed { x, c ->
-            if (c == type) Coordinate(x, y) else null
+            if (c == search) x toY y else null
         }.filterNotNull()
     }.flatten().sorted()
 

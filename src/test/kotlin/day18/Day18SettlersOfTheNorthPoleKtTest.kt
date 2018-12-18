@@ -2,8 +2,9 @@ package day18
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import shared.readPuzzle
 
-internal class Day18KtTest {
+internal class Day18SettlersOfTheNorthPoleKtTest {
 
     @Test
     fun demo1() {
@@ -20,7 +21,17 @@ internal class Day18KtTest {
             ...#.|..|.
         """.trimIndent().split("\n")
 
-        part1(p)
+        assertEquals(1147, part1(p))
+    }
+
+    @Test
+    fun part1() {
+        assertEquals(763804, part1(readPuzzle(18), true))
+    }
+
+    @Test
+    fun part2() {
+        assertEquals(188400, part2(readPuzzle(18)))
     }
 
 }
