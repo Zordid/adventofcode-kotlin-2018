@@ -102,7 +102,7 @@ fun part2(startR0: Int = 1): Any {
     do {
         // r5 runs from 1 to r1
         // adds r2 to r0 only if r1 is divisible by r2!
-        // => result is the sum of all prime factors including 1 and the number r1 itself!
+        // => result is the sum of all divisors
         if (r1 % r2 == 0)
             r0 += r2
 //        r5 = 1
