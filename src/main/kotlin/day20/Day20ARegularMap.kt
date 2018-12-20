@@ -6,10 +6,9 @@ class NorthPoleMap(puzzle: String) {
 
     private val rooms = mutableMapOf(0 toY 0 to BooleanArray(4))
 
-    private val shortestPathToRoom: Map<Coordinate, Int> by lazy {
-        println("Analyzing ${rooms.size} rooms...")
-        rooms.mapValues { (room, _) ->
-            breadthFirstSearch(0 toY 0, ::allDoorsFrom) { it == room }.size - 1
+    private val searchEngine = SearchEngineWithNodes<Coordinate> {
+        it.manhattanNeighbors.filterIndexed { index, _ ->
+            rooms[it]?.get(index) ?: false
         }
     }
 
@@ -75,19 +74,27 @@ class NorthPoleMap(puzzle: String) {
         }
     }
 
-    private fun allDoorsFrom(room: Coordinate): List<Coordinate> =
-        room.manhattanNeighbors.filterIndexed { index, _ ->
-            rooms[room]?.get(index) ?: false
+    private val solutions: Pair<Int, Int> by lazy {
+        var maxLevel = 0
+        var aboveThreshold = 0
+        searchEngine.completeAcyclicTraverse(0 toY 0).forEach { (level, onLevel) ->
+            maxLevel = level
+            if (level >= 1000)
+                aboveThreshold += onLevel.size
         }
 
-    fun solvePart1() = shortestPathToRoom.maxBy { it.value }!!.value
+        maxLevel to aboveThreshold
+    }
 
-    fun solvePart2() = shortestPathToRoom.count { it.value >= 1000 }
+    fun solvePart1() = solutions.first
+
+    fun solvePart2() = solutions.second
 }
 
 fun main(args: Array<String>) {
     val northPoleMap = NorthPoleMap(readPuzzle(20).single())
-
-    println(northPoleMap.solvePart1())
-    println(northPoleMap.solvePart2())
+    measureRuntime {
+        println(northPoleMap.solvePart1())
+        println(northPoleMap.solvePart2())
+    }
 }

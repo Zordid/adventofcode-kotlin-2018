@@ -6,8 +6,10 @@ typealias DebugHandler<N> = (level: Int, nodesOnLevel: Collection<N>, nodesVisit
 
 typealias SolutionPredicate<N> = (node: N) -> Boolean
 
-open class SearchEngineWithEdges<N, E>(private val edgesOfNode: (N) -> Iterable<E>,
-                                       private val walkEdge: (N, E) -> N) {
+open class SearchEngineWithEdges<N, E>(
+    private val edgesOfNode: (N) -> Iterable<E>,
+    private val walkEdge: (N, E) -> N
+) {
 
     var debugHandler: DebugHandler<N>? = null
 
@@ -54,52 +56,51 @@ open class SearchEngineWithEdges<N, E>(private val edgesOfNode: (N) -> Iterable<
 
     }
 
-    private inner class AcyclicCompleteSearch(val startNode: N, val isSolution: SolutionPredicate<N>) {
-        private tailrec fun searchLevel(nodesOnLevel: Collection<N>, level: Int = 0) {
-            if (debugHandler?.invoke(level, nodesOnLevel, emptyList()) == true)
-                return
-            val nodesOnNextLevel = mutableListOf<N>()
-            nodesOnLevel.forEach { currentNode ->
-                edgesOfNode(currentNode).forEach { edge ->
-                    val node = walkEdge(currentNode, edge)
-                    if (!isSolution(node))
-                        nodesOnNextLevel.add(node)
-                }
-            }
-            if (nodesOnNextLevel.isNotEmpty())
-                searchLevel(nodesOnNextLevel, level + 1)
-        }
-
-        fun search() {
-            if (!isSolution(startNode)) searchLevel(listOf(startNode))
-        }
-
-
-    }
-
     fun bfsSearch(startNode: N, isSolution: SolutionPredicate<N>): Stack<N> {
         return BfsSearch(startNode, isSolution).search()
     }
 
-    fun completeAcyclicTraverse(startNode: N, isSolution: SolutionPredicate<N>) {
-        AcyclicCompleteSearch(startNode, isSolution).search()
-    }
+    fun completeAcyclicTraverse(startNode: N): Sequence<Pair<Int, Set<N>>> =
+        sequence {
+            var nodesOnPreviousLevel: MutableSet<N>
+            var nodesOnLevel = mutableSetOf<N>()
+            var nodesOnNextLevel = mutableSetOf(startNode)
+            var level = 0
+            while (nodesOnNextLevel.isNotEmpty()) {
+                nodesOnPreviousLevel = nodesOnLevel
+                nodesOnLevel = nodesOnNextLevel
+                yield(level++ to nodesOnLevel)
+                nodesOnNextLevel = mutableSetOf()
+                nodesOnLevel.forEach { node ->
+                    nodesOnNextLevel.addAll(edgesOfNode(node).map { e -> walkEdge(node, e) }
+                        .filter { neighbor ->
+                            !nodesOnPreviousLevel.contains(neighbor) &&
+                                    !nodesOnLevel.contains(neighbor)
+                        }
+                    )
+                }
+            }
+        }
 
 }
 
-class SearchEngineWithNodes<N>(neighborNodes: (N) -> Collection<N>)
-    : SearchEngineWithEdges<N, N>(neighborNodes, { _, edge -> edge })
+class SearchEngineWithNodes<N>(neighborNodes: (N) -> Collection<N>) :
+    SearchEngineWithEdges<N, N>(neighborNodes, { _, edge -> edge })
 
-fun <N, E> breadthFirstSearch(startNode: N,
-                              edgesOf: (N) -> Collection<E>,
-                              walkEdge: (N, E) -> N,
-                              isSolution: SolutionPredicate<N>) =
-        SearchEngineWithEdges(edgesOf, walkEdge).bfsSearch(startNode, isSolution)
+fun <N, E> breadthFirstSearch(
+    startNode: N,
+    edgesOf: (N) -> Collection<E>,
+    walkEdge: (N, E) -> N,
+    isSolution: SolutionPredicate<N>
+) =
+    SearchEngineWithEdges(edgesOf, walkEdge).bfsSearch(startNode, isSolution)
 
-fun <N> breadthFirstSearch(startNode: N,
-                           neighborNodes: (N) -> Collection<N>,
-                           isSolution: SolutionPredicate<N>) =
-        SearchEngineWithNodes(neighborNodes).bfsSearch(startNode, isSolution)
+fun <N> breadthFirstSearch(
+    startNode: N,
+    neighborNodes: (N) -> Collection<N>,
+    isSolution: SolutionPredicate<N>
+) =
+    SearchEngineWithNodes(neighborNodes).bfsSearch(startNode, isSolution)
 
 fun loggingDebugger(level: Int, nodesOnLevel: Collection<Any>, nodesVisited: Collection<Any>): Boolean {
     println("I am on level $level, searching through ${nodesOnLevel.size}. Visited so far: ${nodesVisited.size}")

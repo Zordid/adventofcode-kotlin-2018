@@ -3,27 +3,7 @@ package shared
 typealias MapDefinition = (Coordinate) -> Boolean
 
 fun floodFill(start: Coordinate, layout: MapDefinition): Sequence<Pair<Int, Set<Coordinate>>> =
-    sequence {
-        var nodesOnPreviousLevel: MutableSet<Coordinate>
-        var nodesOnLevel = mutableSetOf<Coordinate>()
-        var nodesOnNextLevel = mutableSetOf(start)
-        var level = 0
-        while (nodesOnNextLevel.isNotEmpty()) {
-            nodesOnPreviousLevel = nodesOnLevel
-            nodesOnLevel = nodesOnNextLevel
-            yield(level++ to nodesOnLevel)
-            nodesOnNextLevel = mutableSetOf()
-            nodesOnLevel.forEach { coordinate ->
-                nodesOnNextLevel.addAll(coordinate.manhattanNeighbors
-                    .filter { neighbor ->
-                        layout(neighbor) &&
-                                !nodesOnPreviousLevel.contains(neighbor) &&
-                                !nodesOnLevel.contains(neighbor)
-                    }
-                )
-            }
-        }
-    }
+    SearchEngineWithNodes<Coordinate> { it.manhattanNeighbors.filter(layout) }.completeAcyclicTraverse(start)
 
 fun Collection<Coordinate>.filterFirstReached(from: Coordinate, layout: MapDefinition): List<Coordinate> {
     if (isEmpty())
