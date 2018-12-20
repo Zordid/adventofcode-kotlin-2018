@@ -17,8 +17,7 @@ class NorthPoleMap(puzzle: String) {
     }
 
     private fun processLevel(path: String, startRoom: Coordinate = 0 toY 0): Set<Coordinate> {
-        val optionals = path.splitToOptionals()
-        return optionals.flatMap { processOptional(it, startRoom) }.toSet()
+        return path.splitToOptionals().flatMap { processOptional(it, startRoom) }.toSet()
     }
 
     private fun processOptional(path: String, startRoom: Coordinate): Set<Coordinate> {
@@ -28,18 +27,24 @@ class NorthPoleMap(puzzle: String) {
             val c = path[index++]
             if (c != '(') {
                 val direction = Direction.valueOf(c.toString())
-                val enteredRoom = room.manhattanNeighbors[direction.ordinal]
+                val enteredRoom = room.neighborToThe(direction)
                 room.doors()[direction.ordinal] = true
                 enteredRoom.doors()[direction.opposite.ordinal] = true
                 room = enteredRoom
             } else {
                 val end = path.findMatchingClosing(index - 1)
                 val level = path.substring(index, end)
-                val rest = path.substring(end + 1)
                 val endRooms = processLevel(level, room)
-                return endRooms.flatMap {
-                    processOptional(rest, it)
-                }.toSet()
+                if (end == path.length)
+                    return endRooms
+                if (endRooms.size > 1) {
+                    val rest = path.substring(end + 1)
+                    return endRooms.flatMap {
+                        processOptional(rest, it)
+                    }.toSet()
+                }
+                index = end + 1
+                room = endRooms.single()
             }
         }
         return setOf(room)
@@ -56,7 +61,6 @@ class NorthPoleMap(puzzle: String) {
             if (c == ')') counter--
         }
         dividers.add(length)
-
         return dividers.windowed(2, step = 1).map { (s, e) -> substring(s + 1, e) }
     }
 

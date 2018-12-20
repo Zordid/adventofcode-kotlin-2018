@@ -17,6 +17,8 @@ data class Coordinate(val x: Int, val y: Int) : Comparable<Coordinate> {
     val allNeighbors get() = allDeltas.map { transposeBy(it) }
     val manhattanNeighbors get() = manhattanDeltas.map { transposeBy(it) }
 
+    fun neighborToThe(direction: Direction) = transposeBy(manhattanDeltas[direction.ordinal])
+
     override fun compareTo(other: Coordinate) =
         if (y == other.y) x.compareTo(other.x) else y.compareTo(other.y)
 
