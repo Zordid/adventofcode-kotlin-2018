@@ -4,7 +4,7 @@ import shared.*
 
 fun part1(puzzle: List<String>): Int {
     val coordinates = puzzle.map { it.extractCoordinate() }
-    val area = coordinates.area()
+    val area = coordinates.enclosingArea()
 
     val infinite = mutableSetOf<Int>()
     val ownedArea = IntArray(coordinates.size)
@@ -25,7 +25,7 @@ fun part1(puzzle: List<String>): Int {
 
 tailrec fun part2(puzzle: List<String>, threshold: Int = 10000, safetyMargin: Int = 0): Int {
     val coordinates = puzzle.map { it.extractCoordinate() }
-    val area = coordinates.area() + safetyMargin
+    val area = coordinates.enclosingArea() + safetyMargin
 
     var safeAreaTouchedEdge = false
     val size = area.count { test ->

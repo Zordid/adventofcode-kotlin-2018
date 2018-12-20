@@ -45,12 +45,24 @@ class CircularListIterator<T>(private val backingList: LinkedList<T>, startingPo
 
 fun <T> List<T>.allPairs(): Sequence<Pair<T, T>> = sequence {
     forEachIndexed { e1Index, e1 ->
-        (e1Index + 1 until size).forEach { e2Index ->
+        for (e2Index in (e1Index + 1 until size)) {
             yield(e1 to get(e2Index))
         }
     }
 }
 
 fun <T : Comparable<T>> List<T>.minMax(): Pair<T, T>? = min()?.let { it to max()!! }
+
 fun List<Int>.minToMaxRange(): IntRange? = minMax()?.let { it.first..it.second }
+
 fun List<Long>.minToMaxRange(): LongRange? = minMax()?.let { it.first..it.second }
+
+fun List<Coordinate>.enclosingArea(): Area =
+    when {
+        isEmpty() -> Area.EMPTY
+        size == 1 -> Area.from(get(0), get(0))
+        size == 2 && get(0) < get(1) -> Area.from(get(0), get(1))
+        size == 2 -> Area.from(get(1), get(0))
+        else -> Area(map { it.x }.minToMaxRange()!!, map { it.y }.minToMaxRange()!!)
+    }
+

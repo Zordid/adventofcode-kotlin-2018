@@ -33,6 +33,7 @@ data class VClay(val x: IntRange, val y: Int) : Clay() {
 }
 
 enum class Element(val c: Char) { Free('.'), Clay('#'), Soaked('|'), Water('~');
+
     val blocksWater: Boolean get() = this == Clay || this == Water
     val isWet: Boolean get() = this == Water || this == Soaked
     override fun toString(): String = c.toString()
@@ -91,7 +92,8 @@ class Scan(puzzle: List<String>) {
                 val closed = blockedLeft && blockedRight
 
                 val fillWith = if (closed) Element.Water else Element.Soaked
-                (left + 1 until right).forEach { this[it, dropY] = fillWith }
+                for (fillX in left + 1 until right)
+                    this[fillX, dropY] = fillWith
 
                 if (!blockedLeft)
                     pourWater(left, dropY)

@@ -1,5 +1,18 @@
 package shared
 
+enum class Direction {
+    N, E, S, W;
+
+    val opposite: Direction
+        get() =
+            when (this) {
+                N -> S
+                S -> N
+                E -> W
+                W -> E
+            }
+}
+
 data class Coordinate(val x: Int, val y: Int) : Comparable<Coordinate> {
     val allNeighbors get() = allDeltas.map { transposeBy(it) }
     val manhattanNeighbors get() = manhattanDeltas.map { transposeBy(it) }
@@ -39,8 +52,9 @@ data class Coordinate(val x: Int, val y: Int) : Comparable<Coordinate> {
 }
 
 data class Area(val xRange: IntRange, val yRange: IntRange) : Iterable<Coordinate> {
-    override fun iterator(): Iterator<Coordinate> =
-        allCoordinates().iterator()
+    override fun iterator(): Iterator<Coordinate> = allCoordinates().iterator()
+
+    val size = if (isEmpty()) 0 else (xRange.endInclusive - xRange.start + 1) * (yRange.endInclusive - yRange.start + 1)
 
     fun allCoordinates() = sequence {
         for (y in yRange) {
@@ -50,9 +64,10 @@ data class Area(val xRange: IntRange, val yRange: IntRange) : Iterable<Coordinat
     }
 
     operator fun plus(margin: Int) = increasedBy(margin)
+
     operator fun minus(margin: Int) = increasedBy(-margin)
 
-    fun increasedBy(margin: Int) =
+    private fun increasedBy(margin: Int) =
         if (isEmpty())
             this
         else
@@ -62,6 +77,11 @@ data class Area(val xRange: IntRange, val yRange: IntRange) : Iterable<Coordinat
             )
 
     infix fun contains(c: Coordinate) = c.x in xRange && c.y in yRange
+
+    infix fun contains(other: Area) =
+        if (isEmpty() || other.isEmpty()) false else
+            other.xRange.start in xRange && other.xRange.endInclusive in xRange &&
+                    other.yRange.start in yRange && other.yRange.endInclusive in yRange
 
     fun isEmpty() = xRange.isEmpty()
 
@@ -73,6 +93,12 @@ data class Area(val xRange: IntRange, val yRange: IntRange) : Iterable<Coordinat
 
     companion object {
         val EMPTY = Area(IntRange.EMPTY, IntRange.EMPTY)
+
+        fun from(topLeft: Coordinate, bottomRight: Coordinate) =
+            from(topLeft.x, bottomRight.x, topLeft.y, bottomRight.y)
+
+        fun from(x1: Int, y1: Int, x2: Int, y2: Int) =
+            Area(x1..x2, y1..y2)
     }
 }
 
@@ -83,7 +109,3 @@ fun allCoordinates(columns: Int, rows: Int = columns, baseCol: Int = 0, baseRow:
 
 fun <T> List<List<T>>.toArea() =
     if (isNotEmpty()) Area((0 until this.first().size), (0 until size)) else Area.EMPTY
-
-fun List<Coordinate>.area() =
-    map { it.x }.minToMaxRange()?.let { xRange -> Area(xRange, map { it.y }.minToMaxRange()!!) }
-        ?: Area.EMPTY
