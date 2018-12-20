@@ -2,12 +2,6 @@ package day20
 
 import shared.*
 
-data class Room(val location: Coordinate) {
-
-    val doorsTo = BooleanArray(4)
-
-}
-
 class NorthPoleMap(puzzle: String) {
 
     private val rooms = mutableMapOf(0 toY 0 to BooleanArray(4))
@@ -33,39 +27,38 @@ class NorthPoleMap(puzzle: String) {
         var room = startRoom
         while (index < path.length) {
             val c = path[index++]
-            when (c) {
-                '(' -> {
-                    val end = path.findMatchingClosing(index - 1)
-                    val level = path.substring(index, end)
-                    val rest = path.substring(end + 1)
-                    val endRooms = processLevel(level, room)
-                    return endRooms.flatMap {
-                        processOptional(rest, it)
-                    }.toSet()
-                }
-                else -> {
-                    val doors = rooms.getOrPut(room) { BooleanArray(4) }
-                    val direction = Direction.valueOf(c.toString())
-                    doors[direction.ordinal] = true
-                    room = room.manhattanNeighbors[direction.ordinal]
-                    rooms.getOrPut(room) { BooleanArray(4) }[direction.opposite.ordinal] = true
-                }
+            if (c != '(') {
+                val direction = Direction.valueOf(c.toString())
+                val enteredRoom = room.manhattanNeighbors[direction.ordinal]
+                room.doors()[direction.ordinal] = true
+                enteredRoom.doors()[direction.opposite.ordinal] = true
+                room = enteredRoom
+            } else {
+                val end = path.findMatchingClosing(index - 1)
+                val level = path.substring(index, end)
+                val rest = path.substring(end + 1)
+                val endRooms = processLevel(level, room)
+                return endRooms.flatMap {
+                    processOptional(rest, it)
+                }.toSet()
             }
         }
         return setOf(room)
     }
 
+    private fun Coordinate.doors() = rooms.getOrPut(this) { BooleanArray(4) }
+
     private fun String.splitToOptionals(): List<String> {
-        val optionals = mutableListOf(-1)
+        val dividers = mutableListOf(-1)
         var counter = 0
         forEachIndexed { idx, c ->
-            if (c == '|' && counter == 0) optionals.add(idx)
+            if (c == '|' && counter == 0) dividers.add(idx)
             if (c == '(') counter++
             if (c == ')') counter--
         }
-        optionals.add(length)
+        dividers.add(length)
 
-        return optionals.windowed(2, step = 1).map { (s, e) -> substring(s + 1, e) }
+        return dividers.windowed(2, step = 1).map { (s, e) -> substring(s + 1, e) }
     }
 
     private fun String.findMatchingClosing(openIdx: Int): Int {
