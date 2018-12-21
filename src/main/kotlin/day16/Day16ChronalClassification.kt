@@ -1,28 +1,8 @@
 package day16
 
+import shared.ElfDeviceCpu
 import shared.extractAllInts
 import shared.readPuzzle
-
-typealias Instruction = (a: Int, b: Int, c: Int, r: IntArray) -> Unit
-
-val instructionSet = mapOf<String, Instruction>(
-    "addr" to { a, b, c, r -> r[c] = r[a] + r[b] },
-    "addi" to { a, b, c, r -> r[c] = r[a] + b },
-    "mulr" to { a, b, c, r -> r[c] = r[a] * r[b] },
-    "muli" to { a, b, c, r -> r[c] = r[a] * b },
-    "banr" to { a, b, c, r -> r[c] = r[a] and r[b] },
-    "bani" to { a, b, c, r -> r[c] = r[a] and b },
-    "borr" to { a, b, c, r -> r[c] = r[a] or r[b] },
-    "bori" to { a, b, c, r -> r[c] = r[a] or b },
-    "setr" to { a, _, c, r -> r[c] = r[a] },
-    "seti" to { a, _, c, r -> r[c] = a },
-    "gtir" to { a, b, c, r -> r[c] = if (a > r[b]) 1 else 0 },
-    "gtri" to { a, b, c, r -> r[c] = if (r[a] > b) 1 else 0 },
-    "gtrr" to { a, b, c, r -> r[c] = if (r[a] > r[b]) 1 else 0 },
-    "eqir" to { a, b, c, r -> r[c] = if (a == r[b]) 1 else 0 },
-    "eqri" to { a, b, c, r -> r[c] = if (r[a] == b) 1 else 0 },
-    "eqrr" to { a, b, c, r -> r[c] = if (r[a] == r[b]) 1 else 0 }
-)
 
 fun part1(puzzle: List<String>): Int {
     val samples = readSamples(puzzle)
@@ -31,13 +11,13 @@ fun part1(puzzle: List<String>): Int {
 
 fun part2(puzzle: List<String>): Int {
     val samples = readSamples(puzzle)
-    val allowedMappings = createAllowedMappings(samples, instructionSet.keys)
+    val allowedMappings = createAllowedMappings(samples, ElfDeviceCpu.instructionSet.keys)
     val translationTable = determinePossibleMappingTables(allowedMappings).single()
 
     val instructions = readProgram(puzzle)
     val regs = IntArray(4)
     instructions.forEach { (opcode, a, b, c) ->
-        instructionSet[translationTable[opcode]]!!(a, b, c, regs)
+        ElfDeviceCpu.instructionSet[translationTable[opcode]]!!(a, b, c, regs)
     }
     return regs[0]
 }
@@ -52,7 +32,7 @@ fun readSamples(puzzle: List<String>) =
 
             val (opcode, a, b, c) = instruction
 
-            opcode to (instructionSet.filterValues { mnemonic ->
+            opcode to (ElfDeviceCpu.instructionSet.filterValues { mnemonic ->
                 val reg = before.toIntArray()
                 try {
                     mnemonic(a, b, c, reg)

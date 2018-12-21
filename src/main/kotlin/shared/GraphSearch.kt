@@ -62,9 +62,9 @@ open class SearchEngineWithEdges<N, E>(
 
     fun completeAcyclicTraverse(startNode: N): Sequence<Pair<Int, Set<N>>> =
         sequence {
-            var nodesOnPreviousLevel: MutableSet<N>
-            var nodesOnLevel = mutableSetOf<N>()
-            var nodesOnNextLevel = mutableSetOf(startNode)
+            var nodesOnPreviousLevel: Set<N>
+            var nodesOnLevel = setOf<N>()
+            var nodesOnNextLevel = setOf(startNode)
             var level = 0
             while (nodesOnNextLevel.isNotEmpty()) {
                 nodesOnPreviousLevel = nodesOnLevel
@@ -76,8 +76,7 @@ open class SearchEngineWithEdges<N, E>(
                         .filter { neighbor ->
                             !nodesOnPreviousLevel.contains(neighbor) &&
                                     !nodesOnLevel.contains(neighbor)
-                        }
-                    )
+                        })
                 }
             }
         }
