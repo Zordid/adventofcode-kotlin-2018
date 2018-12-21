@@ -6,30 +6,19 @@ import shared.readPuzzle
 
 fun part1(cpu: ElfDeviceCpu): Int {
     cpu.reset()
-    val breakPoint = cpu.run().first { (_, ip) -> ip == 28 }
-    println(cpu.state())
-    println("About to execute: ")
-    println(cpu.visualizeInstruction(breakPoint.second))
-
-    return breakPoint.first[3]
+    val sequenceOfR3ValuesAt28 = cpu.run().filter { (_, ip) -> ip == 28 }.map { (regs, _) -> regs[3] }
+    
+    // the very first value of that sequence is our solution!
+    return sequenceOfR3ValuesAt28.first()
 }
 
 fun part2(cpu: ElfDeviceCpu): Int {
     cpu.reset()
-    val seen = mutableSetOf<Int>()
-    var previous: Int? = null
-    while (true) {
-        val regs = cpu.run().first { (_, ip) -> ip == 28 }.first
-        val r3 = regs[3]
-        if (previous != null && seen.contains(r3)) {
-            println(cpu.state())
-            return previous
-        }
+    val sequenceOfR3ValuesAt28 = cpu.run().filter { (_, ip) -> ip == 28 }.map { (regs, _) -> regs[3] }
 
-        seen.add(r3)
-        previous = r3
-        cpu.step()
-    }
+    // the last value of the sequence of R3's taken while it is not seen before is our solution!
+    val seen = mutableSetOf<Int>()
+    return sequenceOfR3ValuesAt28.takeWhile { !seen.contains(it) }.onEach { seen.add(it) }.last()
 }
 
 fun part2KotlinCode(): Int {
