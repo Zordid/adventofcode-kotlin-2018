@@ -24,7 +24,9 @@ data class Coordinate(val x: Int, val y: Int) : Comparable<Coordinate> {
 
     infix fun manhattanDistanceTo(other: Coordinate) = Math.abs(y - other.y) + Math.abs(x - other.x)
 
-    infix fun transposeBy(other: Coordinate) = Coordinate(x + other.x, y + other.y)
+    infix fun transposeBy(other: Coordinate) = this + other
+
+    infix fun scaleBy(factor: Int) = this * factor
 
     infix fun transposeBy(delta: Pair<Int, Int>) = Coordinate(x + delta.first, y + delta.second)
 
@@ -36,6 +38,14 @@ data class Coordinate(val x: Int, val y: Int) : Comparable<Coordinate> {
                 (y == area.yRange.start || y == area.yRange.endInclusive)
 
     fun toPair() = x to y
+
+    operator fun unaryMinus() = Coordinate(-x, -y)
+
+    operator fun plus(other: Coordinate) = Coordinate(x + other.x, y + other.y)
+
+    operator fun minus(other: Coordinate) = Coordinate(x - other.x, y - other.y)
+
+    operator fun times(factor: Int) = Coordinate(x * factor, y * factor)
 
     override fun toString() = "($x,$y)"
 
@@ -56,7 +66,13 @@ data class Coordinate(val x: Int, val y: Int) : Comparable<Coordinate> {
 data class Area(val xRange: IntRange, val yRange: IntRange) : Iterable<Coordinate> {
     override fun iterator(): Iterator<Coordinate> = allCoordinates().iterator()
 
-    val size = if (isEmpty()) 0 else (xRange.endInclusive - xRange.start + 1) * (yRange.endInclusive - yRange.start + 1)
+    val width = if (isEmpty()) 0 else (xRange.endInclusive - xRange.start + 1)
+    val height = if (isEmpty()) 0 else (yRange.endInclusive - yRange.start + 1)
+
+    val size = if (isEmpty()) 0 else width * height
+
+    val topLeft = xRange.start toY yRange.start
+    val bottomRight = xRange.endInclusive toY yRange.endInclusive
 
     fun allCoordinates() = sequence {
         for (y in yRange) {

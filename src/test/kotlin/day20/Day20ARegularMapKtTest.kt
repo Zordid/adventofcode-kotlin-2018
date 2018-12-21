@@ -22,6 +22,22 @@ internal class Day20ARegularMapKtTest {
         assertEquals(8430, map.solvePart2())
     }
 
-    private fun part1(p: String) = NorthPoleMap(p).solvePart1()
+    @Test
+    fun reddit() {
+        val r = "^NNNNNEEEEESSEEEENNNEEEEE\$"
+        val map = NorthPoleMap(r)
+
+        map.graphicalMap().forEach { println(it) }
+        println(map.solvePart1())
+        println(map.solvePart2())
+    }
+
+    private fun part1(p: String): Int {
+        val map = NorthPoleMap(p)
+        println("$p represents:")
+        map.graphicalMap().forEach { println(it) }
+        println()
+        return map.solvePart1()
+    }
 
 }

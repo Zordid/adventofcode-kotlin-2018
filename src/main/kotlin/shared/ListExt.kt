@@ -57,12 +57,12 @@ fun List<Int>.minToMaxRange(): IntRange? = minMax()?.let { it.first..it.second }
 
 fun List<Long>.minToMaxRange(): LongRange? = minMax()?.let { it.first..it.second }
 
-fun List<Coordinate>.enclosingArea(): Area =
+fun Collection<Coordinate>.enclosingArea(): Area =
     when {
         isEmpty() -> Area.EMPTY
-        size == 1 -> Area.from(get(0), get(0))
-        size == 2 && get(0) < get(1) -> Area.from(get(0), get(1))
-        size == 2 -> Area.from(get(1), get(0))
+        size == 1 -> Area.from(first(), first())
+        size == 2 && first() < last() -> Area.from(first(), last())
+        size == 2 -> Area.from(last(), first())
         else -> Area(map { it.x }.minToMaxRange()!!, map { it.y }.minToMaxRange()!!)
     }
 

@@ -90,6 +90,24 @@ class NorthPoleMap(puzzle: String) {
         maxLevel to aboveThreshold
     }
 
+    fun graphicalMap(): List<String> {
+        val area = rooms.keys.enclosingArea()
+        val map = Array(area.height * 2 + 1) { CharArray(area.width * 2 + 1) { '#' } }
+        val offset = area.topLeft
+        for (room in area) {
+            val mapCoordinate = (room - offset).let { it.x * 2 + 1 toY it.y * 2 + 1 }
+
+            val doors = rooms[room]
+            if (doors != null) {
+                map[mapCoordinate.y][mapCoordinate.x] = if (room.x == 0 && room.y == 0) '$' else '.'
+                mapCoordinate.manhattanNeighbors.filterIndexed { idx, _ -> doors[idx] }.forEach {
+                    map[it.y][it.x] = if (it.y == mapCoordinate.y) '|' else '-'
+                }
+            }
+        }
+        return map.map { it.joinToString("") }
+    }
+
     fun solvePart1() = solutions.first
 
     fun solvePart2() = solutions.second
