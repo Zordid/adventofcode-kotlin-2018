@@ -3,6 +3,7 @@ package day22
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import shared.Coordinate
+import shared.readPuzzle
 import shared.toY
 
 internal class Day22KtTest {
@@ -15,7 +16,17 @@ internal class Day22KtTest {
         """.trimIndent().split("\n")
 
         val m = CaveSystem(p)
-        assertEquals(114, m.totalRiskLevel())
+        val rl = m.map.totalRiskLevel()
+        println("Calculations: ${m.map.totalCalc}")
+        m.map.totalCalc=0
+        m.map.draw()
+        println("Calculations: ${m.map.totalCalc}")
+        assertEquals(114, m.map.totalRiskLevel())
+    }
+
+    @Test
+    fun part1() {
+        assertEquals(11972, part1(readPuzzle(22)))
     }
 
     @Test
@@ -26,7 +37,7 @@ internal class Day22KtTest {
         """.trimIndent().split("\n")
 
         val m = CaveSystem(p)
-        m.draw()
+        m.map.draw()
         val (dist, prev) = m.minimumTravelLengthDetails()
         dist.keys.filter { it.c == 10 toY 10 }.forEach { println("$it: ${dist[it]}") }
 
@@ -43,7 +54,7 @@ internal class Day22KtTest {
         val path = mutableSetOf<Coordinate>()
         moves.reversed().windowed(2, 1).forEach { (from, to) ->
             if (from.equipment != to.equipment) {
-                m.draw(from.c, path)
+                m.map.draw(from.c, path)
                 println("Switch tool from ${from.equipment} to ${to.equipment}: 7 Min")
                 cost += 7
             }
@@ -63,5 +74,10 @@ internal class Day22KtTest {
 
 
         assertEquals(45, part2(p))
+    }
+
+    @Test
+    fun part2() {
+        assertEquals(1092, part2(readPuzzle(22)))
     }
 }

@@ -15,21 +15,43 @@ class Dijkstra<N>(val neighborNodes: (N) -> Collection<N>, val cost: (N, N) -> I
         dist[startNode] = 0
 
         val queue = mutableSetOf(startNode)
+        val distanceMap = mutableMapOf(0 to mutableSetOf(startNode))
+        val distances = sortedSetOf(0)
 
         while (!queue.isEmpty()) {
-            if (queue.size % 1000 == 0)
-                println("Queue left: ${queue.size}")
-            val u = queue.minBy { dist[it] ?: Int.MAX_VALUE }!!
+            val minDistance = distances.first()
+            val minNodes = distanceMap[minDistance]!!
+            val u = minNodes.first()
             if (u == destNode) {
                 return dist to prev
             }
             queue.remove(u)
+            minNodes.remove(u)
+            if (minNodes.isEmpty()) {
+                distanceMap.remove(minDistance)
+                distances.remove(minDistance)
+            }
             for (v in neighborNodes(u)) {
                 val alt = dist[u]!! + cost(u, v)
-                if (alt < dist.getOrPut(v) {
-                        queue.add(v)
-                        Int.MAX_VALUE }) {
+
+                if (!dist.containsKey(v)) {
+                    dist[v] = Int.MAX_VALUE
+                    queue.add(v)
+                    distances.add(Int.MAX_VALUE)
+                    distanceMap.getOrPut(Int.MAX_VALUE) { mutableSetOf() }.add(v)
+                }
+
+                val oldDistance = dist[v]!!
+                if (alt < oldDistance) {
+                    val oldSet = distanceMap[oldDistance]!!
+                    oldSet.remove(v)
+                    if (oldSet.isEmpty()) {
+                        distanceMap.remove(oldDistance)
+                        distances.remove(oldDistance)
+                    }
                     dist[v] = alt
+                    distances.add(alt)
+                    distanceMap.getOrPut(alt) { mutableSetOf() }.add(v)
                     prev[v] = u
                 }
             }
