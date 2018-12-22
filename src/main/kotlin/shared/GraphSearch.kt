@@ -6,6 +6,40 @@ typealias DebugHandler<N> = (level: Int, nodesOnLevel: Collection<N>, nodesVisit
 
 typealias SolutionPredicate<N> = (node: N) -> Boolean
 
+class Dijkstra<N>(val neighborNodes: (N) -> Collection<N>, val cost: (N, N) -> Int) {
+
+    fun search(startNode: N, destNode: N?): Pair<Map<N, Int>, Map<N, N>> {
+        val dist = mutableMapOf<N, Int>()
+        val prev = mutableMapOf<N, N>()
+
+        dist[startNode] = 0
+
+        val queue = mutableSetOf(startNode)
+
+        while (!queue.isEmpty()) {
+            if (queue.size % 1000 == 0)
+                println("Queue left: ${queue.size}")
+            val u = queue.minBy { dist[it] ?: Int.MAX_VALUE }!!
+            if (u == destNode) {
+                return dist to prev
+            }
+            queue.remove(u)
+            for (v in neighborNodes(u)) {
+                val alt = dist[u]!! + cost(u, v)
+                if (alt < dist.getOrPut(v) {
+                        queue.add(v)
+                        Int.MAX_VALUE }) {
+                    dist[v] = alt
+                    prev[v] = u
+                }
+            }
+        }
+
+        return dist to prev
+    }
+
+}
+
 open class SearchEngineWithEdges<N, E>(
     private val edgesOfNode: (N) -> Iterable<E>,
     private val walkEdge: (N, E) -> N

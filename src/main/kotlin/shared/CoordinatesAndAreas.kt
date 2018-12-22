@@ -113,7 +113,7 @@ data class Area(val xRange: IntRange, val yRange: IntRange) : Iterable<Coordinat
         val EMPTY = Area(IntRange.EMPTY, IntRange.EMPTY)
 
         fun from(topLeft: Coordinate, bottomRight: Coordinate) =
-            from(topLeft.x, bottomRight.x, topLeft.y, bottomRight.y)
+            from(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y)
 
         fun from(x1: Int, y1: Int, x2: Int, y2: Int) =
             Area(x1..x2, y1..y2)
