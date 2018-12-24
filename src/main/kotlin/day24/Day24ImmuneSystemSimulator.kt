@@ -4,8 +4,6 @@ import shared.extractAllInts
 import shared.measureRuntime
 import shared.readPuzzle
 
-var verbose = false
-
 enum class OpponentType(private val s: String) {
     ImmuneSystem("Immune System"), Infection("Infection");
 
@@ -17,79 +15,30 @@ data class ImmuneGroup(
     val id: Int,
     val initialUnits: Int,
     val hitPoints: Int,
-    val attackDamageInitial: Int,
+    val attackDamage: Int,
     val attackType: String,
     val immunities: Set<String>,
     val weaknesses: Set<String>,
     val initiative: Int
-) : Comparable<ImmuneGroup> {
-    var units = initialUnits
-    val isAlive: Boolean get() = units > 0
-    private var attackDamage = attackDamageInitial
-    private val effectivePower: Int get() = units * attackDamage
-    private val name = "$type group $id"
+) {
+    val name = "$type group $id"
 
-    fun resetAndAddBoost(boost: Int) {
-        attackDamage = attackDamageInitial + if (type == OpponentType.ImmuneSystem) boost else 0
-        units = initialUnits
-    }
-
-    fun chooseTarget(potentialTargets: List<ImmuneGroup>): ImmuneGroup? {
-        val targetsWithDamage = potentialTargets.associateWith { attackDamage(it) }
-
-        if (verbose)
-            targetsWithDamage.forEach { (target, damage) ->
-                println("$name would deal defending group ${target.id} $damage damage.")
-            }
-
-        val maxDamage = targetsWithDamage.maxBy { it.value }?.value ?: 0
-        if (maxDamage == 0)
-            return null
-
-        val targets = targetsWithDamage.filter { it.value == maxDamage }.map { it.key }
-        val maxEffectivePower = targets.maxBy { it.effectivePower }!!.effectivePower
-        return targets.filter { it.effectivePower == maxEffectivePower }.sortedBy { it.initiative }.asReversed().first()
-    }
-
-    fun attack(target: ImmuneGroup) {
-        val damage = attackDamage(target)
-        val unitsLost = damage / target.hitPoints
-        if (verbose)
-            println("$name attacks defending group ${target.id} killing $unitsLost of ${target.units} units")
-        target.units -= unitsLost
-    }
-
-    private fun attackDamage(target: ImmuneGroup): Int {
-        val isImmune = target.immunities.contains(attackType)
-        val isWeak = target.weaknesses.contains(attackType)
-
-        return if (isImmune) 0 else if (isWeak) effectivePower * 2 else effectivePower
-    }
-
-    override fun compareTo(other: ImmuneGroup) =
-        if (effectivePower == other.effectivePower) initiative.compareTo(other.initiative)
-        else effectivePower.compareTo(other.effectivePower)
-
-    override fun equals(other: Any?) =
-        (other is ImmuneGroup && type == other.type && id == other.id)
-
-    override fun hashCode() = "$type $id".hashCode()
+    fun boostedBy(boost: Int) = copy(attackDamage = attackDamage + boost)
 
     companion object {
-        //105 units each with 6988 hit points (weak to bludgeoning; immune to radiation) with an attack that does 616 radiation damage at initiative 17
-
-        private val weakRegex = Regex(".*weak to (\\w+[\\w, ]*).*")
+        private val weakRegex = Regex("weak to (\\w+[\\w, ]*)")
         private val immunityRegex = Regex("immune to (\\w+[\\w, ]*)")
         private val attackTypeRegex = Regex("does \\d+ (\\w+) damage")
 
         fun fromString(s: String, type: OpponentType, id: Int): ImmuneGroup {
             val (units, hitPoints, attackDamage, initiative) = s.extractAllInts().toList()
 
-            val weaknesses =
-                weakRegex.findAll(s).map { it.groupValues[1] }.firstOrNull()?.split(", ")?.toSet() ?: emptySet()
-            val immunities =
-                immunityRegex.findAll(s).map { it.groupValues[1] }.firstOrNull()?.split(", ")?.toSet() ?: emptySet()
-            val attackType = attackTypeRegex.findAll(s).map { it.groupValues[1] }.single()
+            val weaknesses = weakRegex.findAll(s)
+                .map { it.groupValues[1] }.singleOrNull()?.split(", ")?.toSet()
+            val immunities = immunityRegex.findAll(s)
+                .map { it.groupValues[1] }.singleOrNull()?.split(", ")?.toSet()
+            val attackType = attackTypeRegex.findAll(s)
+                .map { it.groupValues[1] }.single()
 
             return ImmuneGroup(
                 type,
@@ -98,76 +47,127 @@ data class ImmuneGroup(
                 hitPoints,
                 attackDamage,
                 attackType,
-                immunities,
-                weaknesses,
+                immunities ?: emptySet(),
+                weaknesses ?: emptySet(),
                 initiative
             )
         }
     }
 }
 
-fun extractArmy(puzzle: List<String>, type: OpponentType): List<ImmuneGroup> {
-    var id = 1
-    return puzzle.dropWhile { it != "$type:" }.drop(1).takeWhile { it.isNotEmpty() }
-        .map { ImmuneGroup.fromString(it, type, id++) }
-}
+fun extractArmy(puzzle: List<String>, type: OpponentType) =
+    puzzle.dropWhile { it != "$type:" }.drop(1).takeWhile { it.isNotEmpty() }
+        .mapIndexed { idx, l -> ImmuneGroup.fromString(l, type, idx + 1) }
 
-class Fight(immuneSystem: List<ImmuneGroup>, infection: List<ImmuneGroup>, boost: Int = 0) {
+class ImmuneSystemSimulator(
+    immuneSystem: List<ImmuneGroup>,
+    infection: List<ImmuneGroup>,
+    immuneBoost: Int = 0,
+    private val verbose: Boolean = false
+) {
 
-    private var aliveGroups: MutableList<ImmuneGroup> = (immuneSystem + infection).toMutableList()
+    private val all = immuneSystem.map { it.boostedBy(immuneBoost) } + infection
+    private val groupsWithUnits = mutableMapOf<ImmuneGroup, Int>()
 
-    init {
-        aliveGroups.forEach { it.resetAndAddBoost(boost) }
+    private val ImmuneGroup.units: Int get() = groupsWithUnits[this] ?: initialUnits
+    private val ImmuneGroup.effectivePower: Int get() = units * attackDamage
+    private val ImmuneGroup.isAlive: Boolean get() = units > 0
+
+    private val targetComparator =
+        compareBy<Map.Entry<ImmuneGroup, Int>>(
+            { it.value },
+            { it.key.effectivePower },
+            { it.key.initiative }).reversed()!!
+
+    private fun ImmuneGroup.chooseTarget(potentialTargets: List<ImmuneGroup>) =
+        potentialTargets
+            .associateWith { attackDamage(it) }
+            .filter { it.value > 0 }.entries
+            .onEach { (target, damage) ->
+                if (verbose)
+                    println("$name would deal defending group ${target.id} $damage damage")
+            }
+            .sortedWith(targetComparator)
+            .firstOrNull()?.key
+
+    private fun ImmuneGroup.attack(target: ImmuneGroup) {
+        val damage = attackDamage(target)
+        val unitsLost = damage / target.hitPoints
+        if (verbose)
+            println("$name attacks defending group ${target.id} killing $unitsLost units")
+        groupsWithUnits[target] = target.units - unitsLost
     }
+
+    private fun ImmuneGroup.attackDamage(target: ImmuneGroup): Int {
+        val isImmune = target.immunities.contains(attackType)
+        val isWeak = target.weaknesses.contains(attackType)
+        return when {
+            isImmune -> 0
+            isWeak -> effectivePower * 2
+            else -> effectivePower
+        }
+    }
+
+    private val selectionComparator = compareBy<ImmuneGroup>({ it.effectivePower }, { it.initiative }).reversed()
+
+    private val attackComparator = compareBy<Map.Entry<ImmuneGroup, ImmuneGroup>> { it.key.initiative }.reversed()
+
+    private val alive: List<ImmuneGroup> get() = all.filter { it.isAlive }
 
     private fun targetSelection(): Map<ImmuneGroup, ImmuneGroup> {
         val attackTargets = mutableMapOf<ImmuneGroup, ImmuneGroup>()
 
-        aliveGroups.sorted().asReversed().forEach { group ->
-            val potentialTargets = aliveGroups.filter { (it.type != group.type) && !attackTargets.values.contains(it) }
-            group.chooseTarget(potentialTargets)?.also { attackTargets[group] = it }
+        alive.sortedWith(selectionComparator).forEach { attacker ->
+            val potentialTargets = alive.filter { (it.type != attacker.type) && !attackTargets.values.contains(it) }
+            attacker.chooseTarget(potentialTargets)?.also { attackTargets[attacker] = it }
         }
+        if (verbose)
+            println()
 
         return attackTargets
     }
 
     private fun attack(attackTargets: Map<ImmuneGroup, ImmuneGroup>) {
-        val attackers = attackTargets.keys.sortedBy { it.initiative }.asReversed()
-        attackers.forEach { attacker ->
+        attackTargets.entries.sortedWith(attackComparator).forEach { (attacker, target) ->
             if (attacker.isAlive) {
-                attacker.attack(attackTargets[attacker]!!)
+                attacker.attack(target)
             }
         }
-        aliveGroups.removeAll { !it.isAlive }
     }
 
     fun fight(): Pair<String, Int> {
         var statistics = buildStatistics()
+        var round = 1
         while (statistics.keys.size > 1) {
+            if (verbose) println("\nRound ${round++}")
             attack(targetSelection())
 
             val newStats = buildStatistics()
-            if (statistics == newStats)
+            if (statistics == newStats) {
+                if (verbose) println("Tie after $round rounds")
                 return "Tie" to 0
+            }
             statistics = newStats
         }
         val survivor = statistics.keys.single()
         val remaining = statistics.values.single()
+        if (verbose)
+            println("\n$survivor wins with $remaining remaining units after $round rounds")
         return survivor.toString() to remaining
     }
 
     private fun buildStatistics() =
-        aliveGroups.associateBy(
+        alive.associateBy(
             { it.type },
-            { k -> aliveGroups.filter { it.type == k.type }.sumBy { it.units } })
+            { k -> alive.filter { it.type == k.type }.sumBy { it.units } })
 
 }
 
-fun part1(puzzle: List<String>): Int {
+fun part1(puzzle: List<String>, verbose: Boolean = false): Int {
     val immuneSystem = extractArmy(puzzle, OpponentType.ImmuneSystem)
     val infection = extractArmy(puzzle, OpponentType.Infection)
 
-    return Fight(immuneSystem, infection).fight().second
+    return ImmuneSystemSimulator(immuneSystem, infection, verbose = verbose).fight().second
 }
 
 fun part2(puzzle: List<String>): Any {
@@ -175,14 +175,14 @@ fun part2(puzzle: List<String>): Any {
     val infection = extractArmy(puzzle, OpponentType.Infection)
 
     for (boost in (1..Int.MAX_VALUE)) {
-        val result = Fight(immuneSystem, infection, boost).fight()
+        val result = ImmuneSystemSimulator(immuneSystem, infection, boost).fight()
         if (result.first == OpponentType.ImmuneSystem.toString()) {
             println("Boost $boost was needed!")
             return result.second
         }
     }
 
-    return "Couldn't find a suitable boost!"
+    return "Couldn't find a suitable boostedBy!"
 }
 
 fun main(args: Array<String>) {
