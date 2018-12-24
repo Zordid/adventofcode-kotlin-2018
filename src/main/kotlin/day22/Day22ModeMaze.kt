@@ -66,16 +66,12 @@ class CaveMap(puzzle: List<String>) {
 
     operator fun get(c: Coordinate): Type {
         if (c.x < 0 || c.y < 0) return Type.Solid
-        // if (!c.isWithin(area)) return Type.Solid
-        if (c.x > 1000 || c.y > 1000) {
-            println("Es wird spooooooky! $c")
-        }
         return c.erosionLevel().type()
     }
 
 }
 
-class CaveSystem(puzzle: List<String>) {
+class CaveNavigator(puzzle: List<String>) {
 
     val map = CaveMap(puzzle)
 
@@ -105,22 +101,16 @@ class CaveSystem(puzzle: List<String>) {
 
     private fun cost(s: State, d: State) = if (s.equipment != d.equipment) 8 else 1
 
-    private val dijkstra = Dijkstra(::neighbors, ::cost)
+    private fun costLowerBounds(s: State, d: State) = s.c manhattanDistanceTo d.c
+
+    private val aStar = AStar(::neighbors, ::cost, ::costLowerBounds)
 
     private val originState = State(Equipment.Torch, map.origin)
 
     private val targetState = State(Equipment.Torch, map.target)
 
-    fun minimumTravelLengthDetails(): Pair<Map<State, Int>, Map<State, State>> {
-        val (dist, prev) = dijkstra.search(originState, targetState)
-        Equipment.values().forEach { e ->
-            println("$e: ${dist[State(e, map.target)]}")
-        }
-        return dist to prev
-    }
-
     fun minimumTravelLengthAndPath(): Pair<Int, Collection<State>> {
-        val (dist, prev) = dijkstra.search(originState, targetState)
+        val (dist, prev) = aStar.search(originState, targetState)
         val path = mutableListOf<State>()
         var current: State? = targetState
         while (current != null) {
@@ -133,34 +123,24 @@ class CaveSystem(puzzle: List<String>) {
 }
 
 fun part1(puzzle: List<String>): Any {
-    val m = CaveSystem(puzzle)
+    val m = CaveNavigator(puzzle)
     return m.map.totalRiskLevel()
 }
 
-fun Collection<State>.switches() = windowed(2, 1).count { (a, b) -> a.equipment != b.equipment }
-
-fun part2(puzzle: List<String>): Any {
-    val m = CaveSystem(puzzle)
+fun part2(puzzle: List<String>, verbose: Boolean = false): Any {
+    val m = CaveNavigator(puzzle)
     val (length, path) = m.minimumTravelLengthAndPath()
-    println("evaluated ${m.map.totalCalc} cells")
-    m.map.draw(path = path.map { it.c })
-    println(" needed $length minutes. ")
-    val cost = path.switches() * 7 + path.size - 1
-    println("${path.switches()} * 7 + ${path.size - 1} = $cost")
-    if (length != cost)
-        throw IllegalArgumentException("Fishy! $cost != $length")
+    if (verbose) {
+        println("evaluated ${m.map.totalCalc} cells")
+        m.map.draw(path = path.map { it.c })
+        println(" needed $length minutes. ")
+        val cost = path.switches() * 7 + path.size - 1
+        println("${path.switches()} * 7 + ${path.size - 1} = $cost")
+    }
     return length
-//
-//    val (_, prev) = m.minimumTravelLengthDetails()
-//    val path = mutableSetOf<Coordinate>()
-//    var current: CaveSystem.State? = CaveSystem.State(CaveSystem.Equipment.Torch, m.target)
-//    while (current != null) {
-//        path.add(current.c)
-//        current = prev[current]
-//    }
-//    m.draw(path = path)
-//    return m.minimumTravelLength()
 }
+
+fun Collection<State>.switches() = windowed(2, 1).count { (a, b) -> a.equipment != b.equipment }
 
 fun main(args: Array<String>) {
     val puzzle = readPuzzle(22)

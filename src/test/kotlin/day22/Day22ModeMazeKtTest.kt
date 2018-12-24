@@ -6,7 +6,7 @@ import shared.Coordinate
 import shared.readPuzzle
 import shared.toY
 
-internal class Day22KtTest {
+internal class Day22ModeMazeKtTest {
 
     @Test
     fun demo1() {
@@ -15,7 +15,7 @@ internal class Day22KtTest {
             10, 10
         """.trimIndent().split("\n")
 
-        val m = CaveSystem(p)
+        val m = CaveNavigator(p)
         val rl = m.map.totalRiskLevel()
         println("Calculations: ${m.map.totalCalc}")
         m.map.totalCalc=0
@@ -36,29 +36,19 @@ internal class Day22KtTest {
             10, 10
         """.trimIndent().split("\n")
 
-        val m = CaveSystem(p)
+        val m = CaveNavigator(p)
         m.map.draw()
-        val (dist, prev) = m.minimumTravelLengthDetails()
-        dist.keys.filter { it.c == 10 toY 10 }.forEach { println("$it: ${dist[it]}") }
-
-        println("My path:")
-        var x = State(Equipment.Torch, 10 toY 10)
-        val moves = mutableListOf<State>()
-        while (prev[x] != null) {
-            moves.add(x)
-            x = prev[x]!!
-        }
-        moves.add(x)
+        val (_, path) = m.minimumTravelLengthAndPath()
 
         var cost = 0
-        val path = mutableSetOf<Coordinate>()
-        moves.reversed().windowed(2, 1).forEach { (from, to) ->
+        val intermediatePath = mutableListOf<Coordinate>()
+        path.windowed(2, 1).forEach { (from, to) ->
             if (from.equipment != to.equipment) {
-                m.map.draw(from.c, path)
+                m.map.draw(from.c, intermediatePath)
                 println("Switch tool from ${from.equipment} to ${to.equipment}: 7 Min")
                 cost += 7
             }
-            path.add(to.c)
+            intermediatePath.add(from.c)
             when {
                 from.c.y < to.c.y -> print("down")
                 from.c.y > to.c.y -> print("up")

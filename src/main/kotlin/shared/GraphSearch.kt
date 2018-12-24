@@ -6,6 +6,50 @@ typealias DebugHandler<N> = (level: Int, nodesOnLevel: Collection<N>, nodesVisit
 
 typealias SolutionPredicate<N> = (node: N) -> Boolean
 
+class AStar<N>(val neighborNodes: (N) -> Collection<N>, val cost: (N, N) -> Int, val costEstimation: (N, N) -> Int) {
+
+    fun search(startNode: N, destNode: N): Pair<Map<N, Int>, Map<N, N>> {
+        val dist = mutableMapOf<N, Int>()
+        val prev = mutableMapOf<N, N>()
+        val openList = MinPriorityQueueImpl<N>()
+        val closedList = mutableSetOf<N>()
+
+        fun expandNode(currentNode: N) {
+            for (successor in neighborNodes(currentNode)) {
+                if (closedList.contains(successor))
+                    continue
+
+                val tentativeDist = dist[currentNode]!! + cost(currentNode, successor)
+                if (openList.contains(successor) && tentativeDist >= dist[successor]!!)
+                    continue
+
+                prev[successor] = currentNode
+                dist[successor] = tentativeDist
+
+                val f = tentativeDist + costEstimation(successor, destNode)
+                if (openList.contains(successor)) {
+                    openList.decreasePriority(successor, f)
+                } else {
+                    openList.insert(successor, f)
+                }
+            }
+        }
+
+        openList.insert(startNode, 0)
+        dist[startNode] = 0
+        do {
+            val currentNode = openList.extractMin()
+            if (currentNode == destNode)
+                return dist to prev
+
+            closedList.add(currentNode)
+            expandNode(currentNode)
+        } while (!openList.isEmpty())
+
+        return dist to prev
+    }
+}
+
 class Dijkstra<N>(val neighborNodes: (N) -> Collection<N>, val cost: (N, N) -> Int) {
 
     fun search(startNode: N, destNode: N?): Pair<Map<N, Int>, Map<N, N>> {
@@ -13,46 +57,20 @@ class Dijkstra<N>(val neighborNodes: (N) -> Collection<N>, val cost: (N, N) -> I
         val prev = mutableMapOf<N, N>()
 
         dist[startNode] = 0
-
-        val queue = mutableSetOf(startNode)
-        val distanceMap = mutableMapOf(0 to mutableSetOf(startNode))
-        val distances = sortedSetOf(0)
+        val queue = MinPriorityQueueImpl<N>()
+        queue.insert(startNode, 0)
 
         while (!queue.isEmpty()) {
-            val minDistance = distances.first()
-            val minNodes = distanceMap[minDistance]!!
-            val u = minNodes.first()
+            val u = queue.extractMin()
             if (u == destNode) {
                 return dist to prev
             }
-            queue.remove(u)
-            minNodes.remove(u)
-            if (minNodes.isEmpty()) {
-                distanceMap.remove(minDistance)
-                distances.remove(minDistance)
-            }
             for (v in neighborNodes(u)) {
                 val alt = dist[u]!! + cost(u, v)
-
-                if (!dist.containsKey(v)) {
-                    dist[v] = Int.MAX_VALUE
-                    queue.add(v)
-                    distances.add(Int.MAX_VALUE)
-                    distanceMap.getOrPut(Int.MAX_VALUE) { mutableSetOf() }.add(v)
-                }
-
-                val oldDistance = dist[v]!!
-                if (alt < oldDistance) {
-                    val oldSet = distanceMap[oldDistance]!!
-                    oldSet.remove(v)
-                    if (oldSet.isEmpty()) {
-                        distanceMap.remove(oldDistance)
-                        distances.remove(oldDistance)
-                    }
+                if (alt < dist.getOrDefault(v, Int.MAX_VALUE)) {
                     dist[v] = alt
-                    distances.add(alt)
-                    distanceMap.getOrPut(alt) { mutableSetOf() }.add(v)
                     prev[v] = u
+                    queue.insert(v, alt)
                 }
             }
         }
