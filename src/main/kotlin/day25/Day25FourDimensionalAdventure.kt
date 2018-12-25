@@ -10,23 +10,20 @@ typealias Constellation = Set<Point>
 infix fun Point.distanceTo(other: Point) =
     zip(other).sumBy { (a, b) -> Math.abs(a - b) }
 
+infix fun Point.distanceToConstellation(constellation: Constellation) =
+    constellation.map { it distanceTo this }.min()!!
+
 fun part1(puzzle: List<String>): Any {
     val points = puzzle.map { it.extractAllInts().toList() }
 
-    val inConstellationWith =
-        points.associateWith { p1 -> points.filter { p2 -> p1 distanceTo p2 <= 3 }.toSet() }
+    val constellations = mutableListOf<Constellation>()
+    points.forEach { point ->
+        val belongsTo = constellations.filter { (point distanceToConstellation it) <= 3 }
 
-    fun addToAndFollow(p: List<Int>, c: MutableSet<Point> = mutableSetOf()): Constellation {
-        c.add(p)
-        inConstellationWith[p]!!.filter { !c.contains(it) }.forEach { addToAndFollow(it, c) }
-        return c
+        val newConstellation = setOf(point) + belongsTo.flatten()
+        constellations.removeAll(belongsTo)
+        constellations.add(newConstellation)
     }
-
-    val constellations = mutableSetOf<Constellation>()
-    points.asSequence()
-        .filter { p -> !constellations.any { it.contains(p) } }
-        .forEach { p -> constellations.add(addToAndFollow(p)) }
-
     return constellations.size
 }
 
