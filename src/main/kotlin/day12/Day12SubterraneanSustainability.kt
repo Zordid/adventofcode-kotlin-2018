@@ -7,8 +7,7 @@ class Pots(puzzle: List<String>) {
     private val initial =
         puzzle.first().split(" ")[2] to 0L
     private val transforms =
-        puzzle.filter { it.contains("=>") }
-            .map { l -> l.split(" ").let { it[0] to it[2] } }.toMap()
+        puzzle.filter { it.contains("=>") }.associate { l -> l.split(" ").let { it[0] to it[2] } }
 
     fun solvePart1(): Long {
         var p = initial
@@ -75,7 +74,7 @@ fun part1(puzzle: List<String>) = Pots(puzzle).solvePart1()
 
 fun part2(puzzle: List<String>) = Pots(puzzle).solvePart2()
 
-fun main(args: Array<String>) {
+fun main() {
     val puzzle = readPuzzle(12)
 
     measureRuntime {

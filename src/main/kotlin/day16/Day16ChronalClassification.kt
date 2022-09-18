@@ -47,7 +47,7 @@ private fun readProgram(puzzle: List<String>) =
     puzzle.takeLastWhile { it.isNotEmpty() }.map { it.extractAllInts().toList() }
 
 private fun <T> determinePossibleMappingTables(allowed: Map<Int, Set<T>>): List<Map<Int, T>> {
-    val nextCandidate = allowed.entries.sortedBy { (_, v) -> v.size }.first()
+    val nextCandidate = allowed.entries.minByOrNull { (_, v) -> v.size }!!
     if (nextCandidate.value.isEmpty())
         return emptyList()
 
@@ -66,7 +66,7 @@ private fun <T> Map<Int, Set<T>>.reduceBy(assignment: Pair<Int, T>) =
     (this - assignment.first).mapValues { (_, v) -> v - assignment.second }
 
 private fun <T> createAllowedMappings(samples: List<Pair<Int, Set<T>>>, all: Set<T>): Map<Int, Set<T>> {
-    val initialAllowed = (0 until all.size).map { it to all }.toMap().toMutableMap()
+    val initialAllowed = all.indices.associateWith { all }.toMutableMap()
     return samples.fold(initialAllowed) { acc, pair ->
         val (opCode, couldBe) = pair
         acc[opCode] = acc[opCode]!! intersect couldBe
@@ -74,7 +74,7 @@ private fun <T> createAllowedMappings(samples: List<Pair<Int, Set<T>>>, all: Set
     }
 }
 
-fun main(args: Array<String>) {
+fun main() {
     val puzzle = readPuzzle(16)
 
     println(part1(puzzle))

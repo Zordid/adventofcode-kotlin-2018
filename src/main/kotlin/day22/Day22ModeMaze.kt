@@ -61,7 +61,7 @@ class CaveMap(puzzle: List<String>) {
     }
 
     fun totalRiskLevel(): Int {
-        return Area.from(origin, target).sumBy { this[it].ordinal }
+        return Area.from(origin, target).sumOf { this[it].ordinal }
     }
 
     operator fun get(c: Coordinate): Type {
@@ -142,7 +142,7 @@ fun part2(puzzle: List<String>, verbose: Boolean = false): Any {
 
 fun Collection<State>.switches() = windowed(2, 1).count { (a, b) -> a.equipment != b.equipment }
 
-fun main(args: Array<String>) {
+fun main() {
     val puzzle = readPuzzle(22)
 
     measureRuntime {

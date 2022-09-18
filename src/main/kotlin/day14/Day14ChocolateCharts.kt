@@ -3,7 +3,7 @@ package day14
 import shared.readPuzzle
 
 fun recipeSequencer() = sequence {
-    val scores = arrayListOf(3, 7)
+    val scores = mutableListOf(3, 7)
     var (elf1, elf2) = 0 to 1
     yieldAll(scores)
     while (true) {
@@ -26,7 +26,7 @@ fun part2(puzzle: String): Int {
         .takeWhile { it != key }.count()
 }
 
-fun main(args: Array<String>) {
+fun main() {
     val puzzle = readPuzzle(14).single()
 
     println(part1(puzzle))

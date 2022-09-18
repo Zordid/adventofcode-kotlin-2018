@@ -2,7 +2,6 @@ package day6
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import shared.extractAllInts
 import shared.readPuzzle
 
 internal class Day6ChronalCoordinatesKtTest {
@@ -22,7 +21,7 @@ internal class Day6ChronalCoordinatesKtTest {
 
     @Test
     fun part1() {
-        assertEquals( 3569, part1(readPuzzle(6)))
+        assertEquals(3569, part1(readPuzzle(6)))
     }
 
     @Test

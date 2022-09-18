@@ -12,21 +12,20 @@ class Player(val type: Char, x: Int, y: Int, val attackPoints: Int = 3) : Compar
         val fastestReachableTargets = potentialTargets
             .filterFirstReached(position, map.mapFun())
 
-        return fastestReachableTargets.sorted().firstOrNull()
+        return fastestReachableTargets.minOrNull()
     }
 
     private fun move(map: List<CharArray>, aliveEnemies: List<Player>) {
         val destination = determineTarget(map, aliveEnemies) ?: return
         val firstStepTo = freeNeighborFields(map)
-            .filterFirstReached(destination, map.mapFun())
-            .sorted().first()
+            .filterFirstReached(destination, map.mapFun()).minOf { it }
 
         position = firstStepTo
     }
 
     private fun attack(aliveEnemiesInRange: List<Player>) {
-        val lowestHitPoints = aliveEnemiesInRange.minBy { it.hitPoints }!!.hitPoints
-        val target = aliveEnemiesInRange.filter { it.hitPoints == lowestHitPoints }.sorted().first()
+        val lowestHitPoints = aliveEnemiesInRange.minBy { it.hitPoints }.hitPoints
+        val target = aliveEnemiesInRange.filter { it.hitPoints == lowestHitPoints }.minOf { it }
 
         target.hitPoints -= attackPoints
     }
@@ -90,7 +89,7 @@ class Combat(puzzle: List<String>, elfPower: Int = 3, private val logging: Boole
         val elvesWin = elves.any { it.isAlive }
         if (stopOnElfDeath && !elvesWin) return -1
 
-        val remainingHitPoints = alivePlayers.sumBy { it.hitPoints }
+        val remainingHitPoints = alivePlayers.sumOf { it.hitPoints }
         if (logging) {
             println("Finished futureWithPrint $fullRoundsPlayed full rounds.")
             val winner = if (elvesWin) "Elves" else "Goblins"
@@ -135,7 +134,7 @@ fun part2(puzzle: List<String>) =
         Combat(puzzle, it).battle(true)
     }.first { it > 0 }
 
-fun main(args: Array<String>) {
+fun main() {
     val puzzle = readPuzzle(15)
 
     measureRuntime {

@@ -19,7 +19,7 @@ fun part2(frequencyChanges: List<Int>): Int {
     return frequencyChanges.firstDuplicateFrequency()
 }
 
-fun main(args: Array<String>) {
+fun main() {
     val puzzle = readPuzzleAsInts(1)
 
     println(part1(puzzle))

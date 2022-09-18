@@ -111,6 +111,7 @@ class ElfDeviceCpu(program: List<String>) {
                     b -> "relative $s1R+1"
                     else -> "absolute $s1R+$s2R+1"
                 }
+
                 "addi" -> if (a == ipRegister) "relative ${b + 1}" else "absolute $s1R+$s2I+1"
                 "seti" -> "absolute ${a + 1}"
                 else -> ""
@@ -120,6 +121,6 @@ class ElfDeviceCpu(program: List<String>) {
         return result.toString()
     }
 
-    override fun toString() = code.mapIndexed { idx, _ -> visualizeInstruction(idx) }.joinToString("\n")
+    override fun toString() = List(code.size) { idx -> visualizeInstruction(idx) }.joinToString("\n")
 
 }

@@ -32,7 +32,8 @@ data class VClay(val x: IntRange, val y: Int) : Clay() {
     }
 }
 
-enum class Element(val c: Char) { Free('.'), Clay('#'), Soaked('|'), Water('~');
+enum class Element(val c: Char) {
+    Free('.'), Clay('#'), Soaked('|'), Water('~');
 
     val blocksWater: Boolean get() = this == Clay || this == Water
     val isWet: Boolean get() = this == Water || this == Soaked
@@ -47,10 +48,10 @@ class Scan(puzzle: List<String>) {
         .map { it[0] to it.extractAllPositiveInts().toList() }
         .map { (c, n) -> if (c == 'x') HClay(n[0], n[1]..n[2]) else VClay(n[1]..n[2], n[0]) }
 
-    private val minY = clays.minBy { it.minY }!!.minY
-    private val maxY = clays.maxBy { it.maxY }!!.maxY
-    private val minX = clays.minBy { it.minX }!!.minX - 1
-    private val maxX = clays.maxBy { it.maxX }!!.maxX + 1
+    private val minY = clays.minBy { it.minY }.minY
+    private val maxY = clays.maxBy { it.maxY }.maxY
+    private val minX = clays.minBy { it.minX }.minX - 1
+    private val maxX = clays.maxBy { it.maxX }.maxX + 1
 
     val map: Array<Array<Element>> = Array(maxY + 1) { Array(maxX - minX + 1) { Element.Free } }
 
@@ -120,7 +121,7 @@ class Scan(puzzle: List<String>) {
         println()
     }
 
-    private fun count(predicate: (Element) -> Boolean) = (minY..maxY).sumBy { y ->
+    private fun count(predicate: (Element) -> Boolean) = (minY..maxY).sumOf { y ->
         (minX..maxX).count { predicate(this[it, y]) }
     }
 
@@ -142,7 +143,7 @@ fun part2(puzzle: List<String>): Int {
     return scan.countWater()
 }
 
-fun main(args: Array<String>) {
+fun main() {
     val puzzle = readPuzzle(17)
 
     measureRuntime {

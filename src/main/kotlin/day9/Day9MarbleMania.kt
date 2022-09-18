@@ -6,7 +6,7 @@ import shared.readPuzzle
 import java.util.*
 
 fun part1(players: Int, marbles: Int): Long {
-    val circle = LinkedList<Int>(listOf(0)).circularListIterator()
+    val circle = LinkedList(listOf(0)).circularListIterator()
 
     val scores = LongArray(players)
     var currentElf = 0
@@ -27,14 +27,14 @@ fun part1(players: Int, marbles: Int): Long {
         currentElf = (currentElf + 1) % players
     }
 
-    return scores.max()!!
+    return scores.max()
 }
 
 fun part2(players: Int, marbles: Int): Long {
     return part1(players, 100 * marbles)
 }
 
-fun main(args: Array<String>) {
+fun main() {
     val (players, marbles) = readPuzzle(9).single().extractAllPositiveInts().toList()
 
     println(part1(players, marbles))

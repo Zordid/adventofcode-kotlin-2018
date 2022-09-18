@@ -1,10 +1,9 @@
 package day22
 
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import shared.Coordinate
 import shared.readPuzzle
-import shared.toY
 
 internal class Day22ModeMazeKtTest {
 
@@ -18,7 +17,7 @@ internal class Day22ModeMazeKtTest {
         val m = CaveNavigator(p)
         val rl = m.map.totalRiskLevel()
         println("Calculations: ${m.map.totalCalc}")
-        m.map.totalCalc=0
+        m.map.totalCalc = 0
         m.map.draw()
         println("Calculations: ${m.map.totalCalc}")
         assertEquals(114, m.map.totalRiskLevel())

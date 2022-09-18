@@ -71,7 +71,7 @@ fun part2(startR0: Int = 1): Any {
     return r0
 }
 
-fun main(args: Array<String>) {
+fun main() {
     val puzzle = readPuzzle(19)
 
     println(part1(puzzle))

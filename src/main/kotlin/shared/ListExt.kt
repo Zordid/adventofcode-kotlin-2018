@@ -51,7 +51,7 @@ fun <T> List<T>.allPairs(): Sequence<Pair<T, T>> = sequence {
     }
 }
 
-fun <T : Comparable<T>> List<T>.minMax(): Pair<T, T>? = min()?.let { it to max()!! }
+fun <T : Comparable<T>> List<T>.minMax(): Pair<T, T>? = minOrNull()?.let { it to max() }
 
 fun List<Int>.minToMaxRange(): IntRange? = minMax()?.let { it.first..it.second }
 

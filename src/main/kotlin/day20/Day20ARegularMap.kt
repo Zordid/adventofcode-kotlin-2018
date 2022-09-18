@@ -113,7 +113,7 @@ class NorthPoleMap(puzzle: String) {
     fun solvePart2() = solutions.second
 }
 
-fun main(args: Array<String>) {
+fun main() {
     val northPoleMap = NorthPoleMap(readPuzzle(20).single())
     measureRuntime {
         println(northPoleMap.solvePart1())

@@ -5,13 +5,13 @@ import shared.readPuzzle
 
 typealias InstructionX86 = (a: Int, b: Int, c: Int, offset: Int) -> List<String>
 
-fun main(args: Array<String>) {
+fun main() {
     XCompiler(readPuzzle(19)).translate()
 }
 
 class XCompiler(input: List<String>) {
 
-    private val program = input.filter { !it.startsWith('#') && !it.isBlank() }
+    private val program = input.filter { !it.startsWith('#') && it.isNotBlank() }
     private val ipRegister = input.firstOrNull { it.startsWith("#ip") }?.extractAllInts()?.first()
 
     fun translate() {

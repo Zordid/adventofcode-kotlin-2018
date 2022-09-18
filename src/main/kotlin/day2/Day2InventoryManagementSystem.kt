@@ -7,7 +7,7 @@ fun String.containsOneCharExactly(times: Int) =
     toCharArray().distinct().any { c -> count { it == c } == times }
 
 infix fun String.difference(other: String) =
-    indices.count { this[it] != other.getOrNull(it) } + Math.max(other.length - length, 0)
+    indices.count { this[it] != other.getOrNull(it) } + (other.length - length).coerceAtLeast(0)
 
 infix fun String.common(other: String) =
     toCharArray().filterIndexed { index, c -> c == other[index] }.joinToString("")
@@ -22,7 +22,7 @@ fun part2(ids: List<String>): String {
     }
 }
 
-fun main(args: Array<String>) {
+fun main() {
     val puzzle = readPuzzle(2)
 
     println(part1(puzzle))

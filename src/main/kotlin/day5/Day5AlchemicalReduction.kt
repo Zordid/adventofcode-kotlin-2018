@@ -1,13 +1,14 @@
 package day5
 
 import shared.readPuzzle
+import kotlin.math.abs
 
 /* Brilliant idea copied from Peter Tseng! */
-private const val caseDifference = 'a'.toInt() - 'A'.toInt()
+private const val caseDifference = 'a'.code - 'A'.code
 
-infix fun Char.matches(other: Char) = Math.abs(this.toInt() - other.toInt()) == caseDifference
+infix fun Char.matches(other: Char) = abs(this.code - other.code) == caseDifference
 
-fun String.removeAllUnitsOf(type: Char) = asSequence().filter { it.toLowerCase() != type }
+fun String.removeAllUnitsOf(type: Char) = asSequence().filter { it.lowercaseChar() != type }
 
 fun Sequence<Char>.polymerReaction(): String {
     val reacted = StringBuilder()
@@ -20,7 +21,7 @@ fun Sequence<Char>.polymerReaction(): String {
     return reacted.toString()
 }
 
-fun String.polymerReaction()= asSequence().polymerReaction()
+fun String.polymerReaction() = asSequence().polymerReaction()
 
 fun part1(polymer: String): Any {
     return polymer.polymerReaction().length
@@ -29,10 +30,10 @@ fun part1(polymer: String): Any {
 fun part2(polymer: String): Any {
     return polymer.asSequence().filter { it.isLowerCase() }.distinct()
         .map { it to polymer.removeAllUnitsOf(it).polymerReaction().length }
-        .minBy { it.second }!!
+        .minBy { it.second }
 }
 
-fun main(args: Array<String>) {
+fun main() {
     val polymer = readPuzzle(5).single()
 
     println(part1(polymer))

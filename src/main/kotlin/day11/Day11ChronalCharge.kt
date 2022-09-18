@@ -4,6 +4,7 @@ import shared.Coordinate
 import shared.allCoordinates
 import shared.measureRuntime
 import shared.readPuzzle
+import kotlin.math.min
 
 private fun powerLevelOf(x: Int, y: Int, serialNumber: Int): Int {
     val rackId = x + 10
@@ -14,16 +15,16 @@ private fun powerLevelOf(x: Int, y: Int, serialNumber: Int): Int {
 fun Coordinate.powerLevel(serialNumber: Int) = powerLevelOf(x, y, serialNumber)
 
 fun Coordinate.powerLevelOfRegion(serialNumber: Int) =
-    allCoordinates(3, 3, x, y).sumBy { it.powerLevel(serialNumber) }
+    allCoordinates(3, 3, x, y).sumOf { it.powerLevel(serialNumber) }
 
 fun Coordinate.maximumPowerLevel(serialNumber: Int): Pair<Int, Int> {
-    val maxSizeForCoordinate = Math.min(301 - x, 301 - y)
+    val maxSizeForCoordinate = min(301 - x, 301 - y)
 
     var power = powerLevelOf(x, y, serialNumber)
     var bestPower = power
     var bestSize = 1
     for (size in 2..maxSizeForCoordinate) {
-        power += (0 until size - 1).sumBy { delta ->
+        power += (0 until size - 1).sumOf { delta ->
             powerLevelOf(x + size - 1, y + delta, serialNumber) +
                     powerLevelOf(x + delta, y + size - 1, serialNumber)
         }
@@ -39,16 +40,16 @@ fun Coordinate.maximumPowerLevel(serialNumber: Int): Pair<Int, Int> {
 
 fun part1(serialNumber: Int) =
     allCoordinates(298, baseCol = 1, baseRow = 1)
-        .maxBy { it.powerLevelOfRegion(serialNumber) }!!
+        .maxBy { it.powerLevelOfRegion(serialNumber) }
         .let { "${it.x},${it.y}" }
 
 fun part2(serialNumber: Int) =
     allCoordinates(300, baseCol = 1, baseRow = 1).asIterable()
         .map { c -> c to c.maximumPowerLevel(serialNumber) }
-        .maxBy { (_, p) -> p.second }!!
+        .maxBy { (_, p) -> p.second }
         .let { "${it.first.x},${it.first.y},${it.second.first}" }
 
-fun main(args: Array<String>) {
+fun main() {
     val puzzle = readPuzzle(11).single().toInt()
 
     println(part1(puzzle))

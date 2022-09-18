@@ -1,6 +1,9 @@
 package day6
 
-import shared.*
+import shared.enclosingArea
+import shared.extractCoordinate
+import shared.minByIfUnique
+import shared.readPuzzle
 
 fun part1(puzzle: List<String>): Int {
     val coordinates = puzzle.map { it.extractCoordinate() }
@@ -20,7 +23,7 @@ fun part1(puzzle: List<String>): Int {
             }
     }
 
-    return (coordinates.indices - infinite).map { it to ownedArea[it] }.maxBy { it.second }!!.second
+    return (coordinates.indices - infinite).map { it to ownedArea[it] }.maxBy { it.second }.second
 }
 
 tailrec fun part2(puzzle: List<String>, threshold: Int = 10000, safetyMargin: Int = 0): Int {
@@ -33,7 +36,7 @@ tailrec fun part2(puzzle: List<String>, threshold: Int = 10000, safetyMargin: In
             return@count false
 
         val atEdge = test isAtEdgeOf area
-        val belongsToSafeArea = coordinates.sumBy { test manhattanDistanceTo it } < threshold
+        val belongsToSafeArea = coordinates.sumOf { test manhattanDistanceTo it } < threshold
         if (belongsToSafeArea && atEdge) {
             println("Warning: safe area reached outer bounds, increasing margin to ${safetyMargin + 1}!")
             safeAreaTouchedEdge = true
@@ -43,7 +46,7 @@ tailrec fun part2(puzzle: List<String>, threshold: Int = 10000, safetyMargin: In
     return if (safeAreaTouchedEdge) part2(puzzle, threshold, safetyMargin + 1) else size
 }
 
-fun main(args: Array<String>) {
+fun main() {
     val puzzle = readPuzzle(6)
 
     println(part1(puzzle))

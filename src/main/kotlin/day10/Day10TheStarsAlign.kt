@@ -33,7 +33,7 @@ fun List<Pair<Int, Int>>.printLights() {
     }
 }
 
-fun main(args: Array<String>) {
+fun main() {
     val puzzle = readPuzzle(10) { it.extractAllInts().toList() }
 
     println(part1and2(puzzle))

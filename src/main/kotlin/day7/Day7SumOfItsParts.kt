@@ -1,7 +1,6 @@
 package day7
 
 import shared.readPuzzle
-import java.lang.StringBuilder
 
 fun part1(input: List<String>): Any {
     val required = prepareData(input)
@@ -9,7 +8,7 @@ fun part1(input: List<String>): Any {
     val order = mutableListOf<Char>()
     while (required.filter { (step, requires) ->
             !order.contains(step) && order.containsAll(requires)
-        }.keys.min()?.also {
+        }.keys.minOrNull()?.also {
             order.add(it)
         } != null);
 
@@ -34,7 +33,7 @@ fun part2(input: List<String>, maxWorkers: Int = 5, baseWork: Int = 60): Any {
     var time = 0
     while (true) {
         while (workers.size == maxWorkers || (required.nextToWorkOn() - workers.keys).isEmpty()) {
-            val nextFinished = workers.minBy { it.value }!!
+            val nextFinished = workers.minBy { it.value }
             workers.remove(nextFinished.key)
             required.forEach { it.value.remove(nextFinished.key) }
             required.remove(nextFinished.key)
@@ -70,7 +69,7 @@ fun part2(requirements: Map<Char, Set<Char>>, maxWorkers: Int = 5, baseWork: Int
     val order = mutableListOf<Char>()
     val workers = mutableMapOf<Char, Int>()
     while (true) {
-        val time = workers.values.min() ?: 0
+        val time = workers.values.minOrNull() ?: 0
 
         val finishedSteps = workers.filterValues { it == time }.keys
         order.addAll(finishedSteps.sorted())
@@ -92,7 +91,7 @@ fun part2(requirements: Map<Char, Set<Char>>, maxWorkers: Int = 5, baseWork: Int
     }
 }
 
-fun main(args: Array<String>) {
+fun main() {
     val stepRequires = readPuzzle(7)
 
     val requirements = prepareData(stepRequires)

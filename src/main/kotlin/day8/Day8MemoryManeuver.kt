@@ -6,11 +6,11 @@ import shared.readPuzzle
 data class TreeDef(val childrenSize: Int, val metadataSize: Int) {
     val children = mutableListOf<TreeDef>()
     val metadata = mutableListOf<Int>()
-    val metadataSum: Int get() = metadata.sum() + children.sumBy { it.metadataSum }
+    val metadataSum: Int get() = metadata.sum() + children.sumOf { it.metadataSum }
     val value: Int
         get() =
             if (childrenSize == 0) metadata.sum()
-            else metadata.sumBy { children.getOrNull(it - 1)?.value ?: 0 }
+            else metadata.sumOf { children.getOrNull(it - 1)?.value ?: 0 }
 }
 
 fun createTree(data: Iterator<Int>): TreeDef =
@@ -33,7 +33,7 @@ fun part2(puzzle: String): Any {
     return trees.value
 }
 
-fun main(args: Array<String>) {
+fun main() {
     val puzzle = readPuzzle(8).single()
 
     println(part1(puzzle))

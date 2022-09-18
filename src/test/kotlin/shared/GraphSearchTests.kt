@@ -26,15 +26,22 @@ internal class GraphSearchTests {
         assertEquals("[]", path.toString())
     }
 
-    private fun generateGraph(): Node = Node("A", listOf(
+    private fun generateGraph(): Node = Node(
+        "A", listOf(
             Node("B"),
-            Node("C", listOf(
+            Node(
+                "C", listOf(
                     Node("E", listOf(Node("Z"))),
                     Node("F")
-            )),
-            Node("D", listOf(
+                )
+            ),
+            Node(
+                "D", listOf(
                     Node("G"),
                     Node("H")
 
-            ))))
+                )
+            )
+        )
+    )
 }

@@ -25,21 +25,21 @@ private val claimDefinition = Regex("#(\\d+) @ (\\d+),(\\d+): (\\d+)x(\\d+)")
 
 fun String.toClaim(): Claim {
     val (id, left, top, width, height) =
-            claimDefinition.matchEntire(this)?.destructured ?: throw UnsupportedOperationException(this)
+        claimDefinition.matchEntire(this)?.destructured ?: throw UnsupportedOperationException(this)
     return Claim(id, left.toInt(), top.toInt(), width.toInt(), height.toInt())
 }
 
 fun part1(claims: List<Claim>): Int {
     val fabric = (0..999).map { ByteArray(1000) { 0 } }
     claims.forEach { it.cut(fabric) }
-    return fabric.map { it.count { it > 1 } }.sum()
+    return fabric.sumOf { it.count { it > 1 } }
 }
 
 fun part2(claims: List<Claim>): Claim {
     return claims.single { a -> (claims - a).all { b -> !a.overlaps(b) } }
 }
 
-fun main(args: Array<String>) {
+fun main() {
     val claims = readPuzzle(3) { it.toClaim() }
 
     println(part1(claims))

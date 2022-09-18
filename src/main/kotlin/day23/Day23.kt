@@ -4,12 +4,14 @@ import shared.extractAllInts
 import shared.measureRuntime
 import shared.minToMaxRange
 import shared.readPuzzle
+import kotlin.math.abs
+import kotlin.math.max
 import kotlin.random.Random
 
 data class Coordinate3d(val x: Int, val y: Int, val z: Int) {
 
     infix fun manhattanDistanceTo(other: Coordinate3d) =
-        Math.abs(x - other.x) + Math.abs(y - other.y) + Math.abs(z - other.z)
+        abs(x - other.x) + abs(y - other.y) + abs(z - other.z)
 
     operator fun plus(other: Coordinate3d) = Coordinate3d(x + other.x, y + other.y, z + other.z)
     operator fun minus(other: Coordinate3d) = Coordinate3d(x - other.x, y - other.y, z - other.z)
@@ -31,12 +33,12 @@ fun coordinateInRange(coordinate: Coordinate3d, bot: NanoBot) =
 fun part1(puzzle: List<List<Int>>): Any {
     val bots = puzzle.map { (x, y, z, r) -> NanoBot(Coordinate3d(x, y, z), r) }
 
-    val strongest = bots.maxBy { it.signalRadius }!!
+    val strongest = bots.maxBy { it.signalRadius }
 
     return bots.count { it inRangeOf strongest }
 }
 
-class Optimizer(val bots: List<NanoBot>) {
+class Optimizer(private val bots: List<NanoBot>) {
 
     val origin = Coordinate3d(0, 0, 0)
     val boundedBy = bots.map { it.coordinate } + listOf(origin)
@@ -87,7 +89,7 @@ class Optimizer(val bots: List<NanoBot>) {
         }
         if (increment == 1)
             return
-        improve(p, increment + 1, Math.max(1, increment / 5))
+        improve(p, increment + 1, max(1, increment / 5))
     }
 
     private fun updateBest(point: Coordinate3d, distance: Int, count: Int) {
@@ -104,9 +106,9 @@ class Optimizer(val bots: List<NanoBot>) {
     }
 
     private fun randomPoint(): Coordinate3d = Coordinate3d(
-        Random.nextInt(boundsX.start, boundsX.endInclusive),
-        Random.nextInt(boundsY.start, boundsY.endInclusive),
-        Random.nextInt(boundsZ.start, boundsZ.endInclusive)
+        Random.nextInt(boundsX.first, boundsX.last),
+        Random.nextInt(boundsY.first, boundsY.last),
+        Random.nextInt(boundsZ.first, boundsZ.last)
     )
 
 }
@@ -122,7 +124,7 @@ fun part2(puzzle: List<List<Int>>): Any {
 }
 
 
-fun main(args: Array<String>) {
+fun main() {
     val puzzle = readPuzzle(23) { it.extractAllInts().toList() }
 
     measureRuntime {

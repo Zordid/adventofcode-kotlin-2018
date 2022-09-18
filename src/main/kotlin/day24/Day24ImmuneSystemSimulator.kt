@@ -159,7 +159,7 @@ class ImmuneSystemSimulator(
     private fun buildStatistics() =
         alive.associateBy(
             { it.type },
-            { k -> alive.filter { it.type == k.type }.sumBy { it.units } })
+            { k -> alive.filter { it.type == k.type }.sumOf { it.units } })
 
 }
 
@@ -185,7 +185,7 @@ fun part2(puzzle: List<String>): Any {
     return "Couldn't find a suitable boostedBy!"
 }
 
-fun main(args: Array<String>) {
+fun main() {
     val puzzle = readPuzzle(24)
 
     measureRuntime {

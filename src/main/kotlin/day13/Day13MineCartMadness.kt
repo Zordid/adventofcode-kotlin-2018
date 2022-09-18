@@ -32,10 +32,12 @@ data class Cart(var x: Int, var y: Int, var heading: Heading) : Comparable<Cart>
             Heading.N, Heading.S -> heading.right
             Heading.E, Heading.W -> heading.left
         }
+
         '\\' -> when (heading) {
             Heading.N, Heading.S -> heading.left
             Heading.E, Heading.W -> heading.right
         }
+
         else -> heading
     }
 
@@ -106,7 +108,7 @@ fun extractTracks(puzzle: List<String>) =
     }
 
 fun printLayout(carts: List<Cart>, tracks: List<List<Char>>) {
-    allCoordinates((tracks.maxBy { it.size }!!.size), tracks.size)
+    allCoordinates((tracks.maxBy { it.size }.size), tracks.size)
         .forEach { (x, y) ->
             if (x == 0) println()
             val c = carts.filter { cart -> !cart.crashed && cart.x == x && cart.y == y }
@@ -119,7 +121,7 @@ fun printLayout(carts: List<Cart>, tracks: List<List<Char>>) {
     println()
 }
 
-fun main(args: Array<String>) {
+fun main() {
     val puzzle = readPuzzle(13)
 
     println(part1(puzzle))

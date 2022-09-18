@@ -7,7 +7,7 @@ import shared.readPuzzle
 fun part1(cpu: ElfDeviceCpu): Int {
     cpu.reset()
     val sequenceOfR3ValuesAt28 = cpu.run().filter { (_, ip) -> ip == 28 }.map { (regs, _) -> regs[3] }
-    
+
     // the very first value of that sequence is our solution!
     return sequenceOfR3ValuesAt28.first()
 }
@@ -108,7 +108,7 @@ fun part2KotlinCode(): Int {
     }
 }
 
-fun main(args: Array<String>) {
+fun main() {
     val puzzle = readPuzzle(21)
 
     val cpu = ElfDeviceCpu(puzzle)

@@ -20,7 +20,7 @@ internal class Day5AlchemicalReductionKtTest {
         assertEquals("", "aAbB".polymerReaction())
         assertEquals("", "baAB".polymerReaction())
         assertEquals("Hao Welt!", "HalLLlo WeabBcdEeDCAlt!".polymerReaction())
-        assertEquals(10, day5.part1(polymer))
+        assertEquals(10, part1(polymer))
     }
 
     @Test
@@ -29,7 +29,7 @@ internal class Day5AlchemicalReductionKtTest {
         assertEquals(8, polymer.removeAllUnitsOf('b').polymerReaction().length)
         assertEquals(4, polymer.removeAllUnitsOf('c').polymerReaction().length)
         assertEquals(6, polymer.removeAllUnitsOf('d').polymerReaction().length)
-        assertEquals('c' to 4, day5.part2(polymer))
+        assertEquals('c' to 4, part2(polymer))
     }
 
 }

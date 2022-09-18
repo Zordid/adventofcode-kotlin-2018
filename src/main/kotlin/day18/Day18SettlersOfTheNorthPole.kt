@@ -1,9 +1,9 @@
 package day18
 
 import shared.Coordinate
-import shared.toArea
 import shared.measureRuntime
 import shared.readPuzzle
+import shared.toArea
 
 class LumberArea(puzzle: List<String>) {
 
@@ -73,7 +73,7 @@ class LumberArea(puzzle: List<String>) {
     private fun List<List<Char>>.neat() =
         joinToString("") { it.joinToString("", postfix = "\n") }
 
-    private fun List<List<Char>>.count(searchFor: Char) = sumBy { it.count { c -> c == searchFor } }
+    private fun List<List<Char>>.count(searchFor: Char) = sumOf { it.count { c -> c == searchFor } }
 
 }
 
@@ -81,7 +81,7 @@ fun part1(puzzle: List<String>, debug: Boolean = false) = LumberArea(puzzle).sol
 
 fun part2(puzzle: List<String>, debug: Boolean = false) = LumberArea(puzzle).solve(1000000000, debug)
 
-fun main(args: Array<String>) {
+fun main() {
     val puzzle = readPuzzle(18)
 
     measureRuntime {
